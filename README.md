@@ -192,7 +192,8 @@ każdego ticketu zlecaj subagentowi, a sam sprawdzaj wynik przed przejściem dal
 - Dane pobiera appka, nie agent: RSS kanału (nowe filmy z ostatnich 7 dni, max 3 na kanał),
   YouTube Data API v3 z kluczem z data/secrets.json (videos.list + commentThreads.list, max 100
   komentarzy bez odpowiedzi), Apify supreme_coder/youtube-transcript-scraper (opcja, body
-  {"urls":[{"url":...}],"outputFormat":"text"}, transkrypt do ok. 3000 słów). Materiały do
+  {"urls":[{"url":...}],"outputFormat":"text"}, timeout=300 w URL i jedna ponowna próba przy
+  TIMED-OUT, transkrypt do ok. 3000 słów). Materiały do
   data/agent/materials/<run>/<videoId>/. Zero yt-dlp.
 - channel_id z HTML strony kanału (meta itemprop="identifier", zapas externalId / canonical),
   nagłówki User-Agent przeglądarkowy + Accept-Language en-US + cookie SOCS=CAI, walidacja

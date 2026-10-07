@@ -150,7 +150,7 @@ Agent zada rundę pytań. Gotowe odpowiedzi (zmień, co chcesz; „all” = przy
 |---|---|
 | Skąd nowe filmy? | RSS kanału: `https://www.youtube.com/feeds/videos.xml?channel_id=UC...` (bez klucza, działa z każdego serwera). `channel_id` z handle: pobierz HTML `https://www.youtube.com/@nazwa` (nagłówki `User-Agent` przeglądarkowy, `Accept-Language: en-US`, cookie `SOCS=CAI`) i weź `<meta itemprop="identifier" content="UC...">`, zapas: `"externalId":"UC..."` albo `<link rel="canonical" href=".../channel/UC...">`. Walidacja `^UC[\w-]{22}$` |
 | Skąd komentarze i opisy? | **YouTube Data API v3** z kluczem użytkownika: `videos.list` (`part=snippet`, tytuł + opis), `commentThreads.list` (`part=snippet`, `maxResults=100`, `order=relevance`, `textFormat=plainText`) - do 100 komentarzy najwyższego poziomu na film, bez odpowiedzi. Koszt: 1 jednostka na wywołanie |
-| Skąd treść filmu? | **Apify** (opcja): aktor `supreme_coder/youtube-transcript-scraper`, endpoint `POST https://api.apify.com/v2/acts/supreme_coder~youtube-transcript-scraper/run-sync-get-dataset-items?token=...&timeout=120`, body `{"urls":[{"url":"https://www.youtube.com/watch?v=ID"}],"outputFormat":"text"}` (uwaga: `urls` to lista **obiektów** `{url}`, nie stringów). Odpowiedź: lista z polami `transcript` (tekst), `language`, `isGenerated`. Przycinamy do ok. 3000 słów na film. Bez tokena pomijamy treść, zostają komentarze i opisy |
+| Skąd treść filmu? | **Apify** (opcja): aktor `supreme_coder/youtube-transcript-scraper`, endpoint `POST https://api.apify.com/v2/acts/supreme_coder~youtube-transcript-scraper/run-sync-get-dataset-items?token=...&timeout=300`, body `{"urls":[{"url":"https://www.youtube.com/watch?v=ID"}],"outputFormat":"text"}` (uwaga: `urls` to lista **obiektów** `{url}`, nie stringów). Odpowiedź: lista z polami `transcript` (tekst), `language`, `isGenerated`. Przycinamy do ok. 3000 słów na film. Aktor bywa wolny (długi film, kolejka darmowego planu): `timeout=300`, przy `TIMED-OUT` jedna ponowna próba, potem ostrzeżenie i analiza bez treści. Bez tokena pomijamy treść, zostają komentarze i opisy |
 | Ile filmów na przebieg? | najwyżej 3 na kanał, **opublikowane w ostatnich 7 dniach** (pole `published` z RSS, nie `updated`) i jeszcze nieprzeanalizowane. Okno 7 dni = mało żądań i tani przebieg. **Brak nowych filmów nie kończy przebiegu:** tura agenta startuje na materiałach z ostatniego udanego przebiegu (bez ponownego pobierania), wznawia ten sam `threadId` i oznacza powtórzone wnioski „już zgłaszane”; raport dostaje ostrzeżenie „brak nowych filmów”. Dopiero brak jakichkolwiek materiałów = bez tury. Tak działa test pamięci w F3/F6 |
 | Kto pobiera dane? | **Appka** (kod), przed turą agenta, do `data/agent/materials/<run>/<videoId>/` jako `info.json`, `comments.json`, `transcript.txt`. Klucze zostają w `data/secrets.json`, poza folderem agenta. Agent dostaje w prompcie listę plików i analizuje (zasada 3) |
 | Co w raporcie? | 3 listy: pytania widzów, narzekania, luki tematyczne (czego nikt nie nagrał). Każda pozycja: tytuł, 1 zdanie, kanał/film źródłowy, siła (niska/średnia/wysoka), czy już zgłaszane w poprzednim przebiegu. Schemat: `docs/schema.json` |
@@ -234,7 +234,8 @@ każdego ticketu zlecaj subagentowi, a sam sprawdzaj wynik przed przejściem dal
 - Dane pobiera appka, nie agent: RSS kanału (nowe filmy z ostatnich 7 dni, max 3 na kanał),
   YouTube Data API v3 z kluczem z data/secrets.json (videos.list + commentThreads.list, max 100
   komentarzy bez odpowiedzi), Apify supreme_coder/youtube-transcript-scraper (opcja, body
-  {"urls":[{"url":...}],"outputFormat":"text"}, transkrypt do ok. 3000 słów). Materiały do
+  {"urls":[{"url":...}],"outputFormat":"text"}, timeout=300 w URL i jedna ponowna próba przy
+  TIMED-OUT, transkrypt do ok. 3000 słów). Materiały do
   data/agent/materials/<run>/<videoId>/. Zero yt-dlp.
 - channel_id z HTML strony kanału (meta itemprop="identifier", zapas externalId / canonical),
   nagłówki User-Agent przeglądarkowy + Accept-Language en-US + cookie SOCS=CAI, walidacja
@@ -326,7 +327,8 @@ const report = JSON.parse(finalText); // zgodny z docs/schema.json
 | YouTube API: `403 accessNotConfigured` | klucz jest, ale API nie włączone w projekcie Google | Console -> Enable APIs -> YouTube Data API v3 -> Enable (propagacja do 5 min) |
 | YouTube API: `403 quotaExceeded` | zużyte 10 000 jednostek | poczekaj do północy czasu Pacyfiku; sprawdź, czy appka nie pobiera w pętli |
 | Apify: `invalid-input ... urls` | `urls` podane jako lista stringów | lista obiektów `{"url": "..."}` |
-| Apify: pusty transkrypt | film bez napisów | pomiń treść, zostaw komentarze; raport dostaje ostrzeżenie |
+| Apify: pusty transkrypt | film bez napisów (nawet automatycznych) | pomiń treść, zostaw komentarze; raport dostaje ostrzeżenie |
+| Apify: `HTTP 400 run-failed ... status: TIMED-OUT` | aktor nie zdążył w limicie (długi film, kolejka darmowego planu) | `timeout=300` w URL i jedna ponowna próba; po drugim razie ostrzeżenie i analiza bez treści |
 | Dodanie kanału: brak `channelId` w HTML | YouTube nie wstawia już `"channelId"` w stronę kanału | `<meta itemprop="identifier">`, zapas `externalId` / `canonical` (tabela F2a) |
 | Kod urządzenia nie pojawia się w panelu | parser zakłada format 4-4, a CLI wypisuje np. `J7SZ-MXKP1` | `templates/device-login.js` (segmenty różnej długości) |
 | Po zamknięciu appki zostaje proces `codex login` | paczka `@openai/codex` uruchamia osobny proces natywny | uruchamiaj logowanie jako grupę procesów i kończ całą grupę |
