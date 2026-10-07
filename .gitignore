@@ -5,6 +5,7 @@ codex-home/
 data/
 .env
 .env.*
+!.env.example
 *.bak
 *.bak-*
 

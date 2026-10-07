@@ -1,0 +1,14 @@
+node_modules/
+data/
+codex-home/
+.git/
+.agents/
+.codex/
+auth.json
+**/auth.json
+.env*
+**/.env*
+docs/*
+!docs/schema.json
+README.md
+test/

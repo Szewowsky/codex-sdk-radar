@@ -1,0 +1,50 @@
+name: radar
+
+services:
+  radar:
+    build: .
+    # Podmień na wynik `id -u`:`id -g` użytkownika na serwerze (właściciel ./data i ./codex-home).
+    user: "1000:1000"
+    restart: unless-stopped
+    # Domyślne zabezpieczenia Dockera + to, czego potrzebuje sandbox Codexa (deploy/sandbox/README.md).
+    # Profil AppArmor ładuje raz `deploy/sandbox/install-sandbox-profile.sh` (sudo).
+    security_opt:
+      - apparmor=radar-bwrap
+      - seccomp=./deploy/sandbox/radar-bwrap-seccomp.json
+    # Port tylko w sieci kontenerów, bez `ports:`. Na świat wychodzi wyłącznie Caddy (Docker omija ufw).
+    expose:
+      - "3000"
+    env_file: .env
+    environment:
+      HOST: "0.0.0.0"
+      PORT: "3000"
+      CODEX_HOME: /codex-home
+    volumes:
+      - ./data:/app/data
+      - ./codex-home:/codex-home
+    stop_grace_period: 20s
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/health').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"]
+      interval: 30s
+      timeout: 3s
+      start_period: 10s
+      retries: 3
+
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      RADAR_DOMAIN: ${RADAR_DOMAIN}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - radar
+
+volumes:
+  caddy_data:
+  caddy_config:

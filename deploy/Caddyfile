@@ -1,0 +1,5 @@
+# HTTPS z automatycznym certyfikatem dla domeny z RADAR_DOMAIN (.env), ruch do kontenera radaru.
+# Domena musi wskazywać na IP serwera, a porty 80/443 muszą być otwarte w firewallu.
+{$RADAR_DOMAIN} {
+	reverse_proxy radar:3000
+}

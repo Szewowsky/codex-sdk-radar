@@ -1,0 +1,11 @@
+# Wariant Tailscale (WIZARD F4d): panel tylko w Twojej prywatnej sieci, bez Caddy i publicznej domeny.
+# Użycie na serwerze: docker compose -f docker-compose.yml -f docker-compose.tailscale.yml up -d --build
+# Ten plik nakłada się na docker-compose.yml: wyłącza Caddy i publikuje port radaru wyłącznie na
+# 127.0.0.1 serwera. Z tailnetu wpuszcza go `tailscale serve --bg 3000` (HTTPS od Tailscale).
+services:
+  radar:
+    ports:
+      - "127.0.0.1:3000:3000"
+  caddy:
+    # Caddy niepotrzebny: HTTPS i dostęp daje Tailscale. Profil !caddy nigdy nie jest włączany.
+    profiles: ["caddy"]
