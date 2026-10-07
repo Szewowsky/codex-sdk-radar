@@ -205,6 +205,8 @@ każdego ticketu zlecaj subagentowi, a sam sprawdzaj wynik przed przejściem dal
 - Wynik tury wymuś przez outputSchema z docs/schema.json; sparsuj finalResponse jako JSON
   i zwaliduj.
 - Pamięć: thread.id po pierwszym przebiegu w data/state.json, kolejne przez resumeThread(id).
+  Brak nowych filmów nie kończy przebiegu: tura idzie na materiałach z ostatniego udanego
+  przebiegu (bez ponownego pobierania) i oznacza powtórzone wnioski „już zgłaszane”.
 - Bezpiecznik: AbortSignal.timeout(10 * 60_000) na turę; drugi równoległy start = 409.
 - Hasło do panelu: zapytaj mnie polem formularza (nie zwykłą wiadomością), hash scrypt do .env
   jako RADAR_PANEL_PASSWORD_HASH, .env w .gitignore i .dockerignore. Bez hasha appka nie startuje.
