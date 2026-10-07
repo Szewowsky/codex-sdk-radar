@@ -1,0 +1,24 @@
+# Logowanie i stan agenta - nigdy nie commitować
+auth.json
+codex-home/
+.codex/
+data/
+.env
+.env.*
+*.bak
+*.bak-*
+
+# Node
+node_modules/
+dist/
+npm-debug.log*
+
+# Systemowe
+.DS_Store
+*.swp
+*.swo
+*~
+
+# Python
+__pycache__/
+*.pyc

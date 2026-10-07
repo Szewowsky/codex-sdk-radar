@@ -1,0 +1,835 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Twój Codex w appce · poradnik po odcinku</title>
+<meta name="description" content="Agent Codexa wbudowany we własną aplikację przez Codex SDK, zalogowany Twoim kontem ChatGPT bez klucza API: radar konkurencji YouTube na Twoim VPS, zbudowany przez agenta w 7 krokach.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📡</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300..800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#1A192C;
+    --bg-2:#211F38;
+    --bg-3:#141322;
+    --ink:#EDEAF6;
+    --ink-dim:#A9A4C2;
+    --line:#312E4C;
+    --orange:#F39F06;
+    --orange-soft:rgba(243,159,6,.12);
+    --green:#4ADE80;
+    --red:#F87171;
+    --yellow:#FACC15;
+    --mono:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+    --disp:'Bricolage Grotesque','Instrument Sans',sans-serif;
+    --body:'Instrument Sans',system-ui,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    background:var(--bg);color:var(--ink);font-family:var(--body);
+    font-size:17px;line-height:1.65;-webkit-font-smoothing:antialiased;
+    background-image:
+      radial-gradient(1200px 500px at 80% -10%, rgba(243,159,6,.07), transparent 60%),
+      radial-gradient(900px 500px at -10% 30%, rgba(122,90,248,.08), transparent 55%);
+  }
+  ::selection{background:var(--orange);color:var(--bg)}
+  .wrap{max-width:860px;margin:0 auto;padding:0 24px}
+  a{color:var(--orange);text-decoration:none;border-bottom:1px solid rgba(243,159,6,.35)}
+  a:hover{border-bottom-color:var(--orange)}
+  code.inline{font-family:var(--mono);font-size:13.5px;color:var(--orange);
+    background:rgba(243,159,6,.08);padding:2px 7px;border-radius:6px;overflow-wrap:anywhere}
+
+  /* HERO */
+  header{padding:72px 0 40px;border-bottom:1px solid var(--line)}
+  .kicker{
+    font-family:var(--mono);font-size:12px;letter-spacing:.22em;text-transform:uppercase;
+    color:var(--orange);display:flex;align-items:center;gap:12px;margin-bottom:22px;
+  }
+  .kicker::before{content:"";display:inline-block;width:34px;height:2px;background:var(--orange)}
+  h1{
+    font-family:var(--disp);font-weight:750;font-size:clamp(34px,6vw,58px);
+    line-height:1.04;letter-spacing:-.02em;margin-bottom:20px;
+  }
+  h1 em{font-style:normal;color:var(--orange)}
+  .lede{font-size:clamp(17px,2.2vw,20px);color:var(--ink-dim);max-width:640px}
+  .lede strong{color:var(--ink);font-weight:600}
+  .hero-meta{
+    display:flex;flex-wrap:wrap;gap:10px;margin-top:28px;font-family:var(--mono);font-size:12.5px;
+  }
+  .chip{
+    border:1px solid var(--line);border-radius:999px;padding:6px 14px;color:var(--ink-dim);
+    background:rgba(255,255,255,.02)
+  }
+  .chip b{color:var(--green);font-weight:600}
+
+  /* SECTIONS */
+  section{padding:56px 0;border-bottom:1px solid var(--line)}
+  .step-tag{
+    font-family:var(--mono);font-size:13px;color:var(--orange);letter-spacing:.14em;margin-bottom:10px;
+  }
+  h2{
+    font-family:var(--disp);font-weight:700;font-size:clamp(24px,3.6vw,34px);
+    letter-spacing:-.015em;line-height:1.15;margin-bottom:16px;
+  }
+  h3{font-family:var(--disp);font-weight:650;font-size:19px;margin:26px 0 8px}
+  p{margin-bottom:14px;color:var(--ink-dim)}
+  p strong,li strong{color:var(--ink);font-weight:600}
+  ul.plain{list-style:none;margin:18px 0}
+  ul.plain li{
+    padding:10px 0 10px 30px;position:relative;color:var(--ink-dim);border-top:1px dashed var(--line)
+  }
+  ul.plain li:last-child{border-bottom:1px dashed var(--line)}
+  ul.plain li::before{content:"›";position:absolute;left:6px;color:var(--orange);font-family:var(--mono)}
+  .time{font-family:var(--mono);font-size:12.5px;color:var(--ink-dim);margin-left:6px;letter-spacing:.04em}
+  p.test{
+    margin:18px 0;padding:12px 16px;border-left:3px solid var(--green);border-radius:0 10px 10px 0;
+    background:rgba(74,222,128,.06);color:var(--ink);font-size:15.5px;
+  }
+  p.test strong{color:var(--green)}
+
+  /* CODE / TERMINAL */
+  .codeblock{
+    position:relative;margin:20px 0;border:1px solid var(--line);border-radius:12px;
+    background:var(--bg-3);overflow:hidden;
+  }
+  .codebar{
+    display:flex;justify-content:space-between;align-items:center;gap:12px;
+    padding:9px 14px;border-bottom:1px solid var(--line);
+    font-family:var(--mono);font-size:11.5px;letter-spacing:.1em;color:var(--ink-dim);
+    text-transform:uppercase;background:rgba(255,255,255,.02)
+  }
+  .copy-btn{
+    font-family:var(--mono);font-size:11.5px;letter-spacing:.08em;cursor:pointer;
+    background:var(--orange);color:#1A192C;border:0;border-radius:7px;padding:6px 14px;
+    font-weight:600;transition:transform .08s ease, background .15s;flex-shrink:0;
+  }
+  .copy-btn:hover{background:#ffb42a}
+  .copy-btn:active{transform:scale(.96)}
+  .copy-btn.done{background:var(--green)}
+  pre{
+    padding:18px 18px 20px;overflow-x:auto;font-family:var(--mono);
+    font-size:13.5px;line-height:1.7;color:#DCD8EE;white-space:pre-wrap;word-break:break-word;
+  }
+  .term pre{white-space:pre;word-break:normal}
+  .t-pass{color:var(--green)}
+  .t-fail{color:var(--red)}
+  .t-warn{color:var(--yellow)}
+  .t-dim{color:#6E6990}
+  .t-orange{color:var(--orange)}
+
+  /* CALLOUTS */
+  .warn{
+    display:flex;gap:14px;margin:22px 0;padding:16px 18px;border-radius:12px;
+    background:rgba(248,113,113,.07);border:1px solid rgba(248,113,113,.3);
+  }
+  .warn .ico{font-size:20px;line-height:1.4}
+  .warn p{margin:0;color:var(--ink)}
+  .note{
+    margin:22px 0;padding:16px 18px;border-radius:12px;
+    background:var(--orange-soft);border:1px solid rgba(243,159,6,.3);
+  }
+  .note p{margin:0;color:var(--ink)}
+  .note p + p{margin-top:8px}
+
+  /* TIMELINE */
+  .flow{margin:26px 0;display:grid;gap:0}
+  .flow-item{
+    display:grid;grid-template-columns:56px 1fr;gap:16px;padding:16px 0;
+    border-top:1px dashed var(--line)
+  }
+  .flow-item:last-child{border-bottom:1px dashed var(--line)}
+  .flow-num{
+    font-family:var(--mono);font-size:13px;color:var(--orange);
+    border:1px solid var(--line);border-radius:10px;height:40px;width:56px;
+    display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.02)
+  }
+  .flow-item h4{font-family:var(--disp);font-size:16.5px;font-weight:650;margin-bottom:3px}
+  .flow-item p{margin:0;font-size:15.5px}
+  .decyzja{
+    display:inline-block;margin-left:8px;font-family:var(--mono);font-size:10px;letter-spacing:.1em;
+    color:var(--orange);border:1px solid rgba(243,159,6,.45);border-radius:999px;padding:2px 8px;
+    background:var(--orange-soft);vertical-align:middle;text-transform:uppercase;
+  }
+
+  /* TABELA */
+  .tabela-wrap{overflow-x:auto;margin:22px 0;border:1px solid var(--line);border-radius:12px}
+  table{border-collapse:collapse;width:100%;min-width:560px;font-size:15px}
+  thead th{
+    font-family:var(--mono);font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;
+    color:var(--ink-dim);text-align:left;padding:12px 16px;border-bottom:1px solid var(--line);
+    background:rgba(255,255,255,.02);font-weight:600;
+  }
+  tbody td{padding:12px 16px;border-top:1px dashed var(--line);color:var(--ink-dim);vertical-align:top}
+  tbody td:first-child{color:var(--ink)}
+  tbody td.stan{font-family:var(--mono);font-size:12.5px;white-space:nowrap}
+
+  /* AKORDEONY */
+  .droga{
+    border:1px solid var(--line);border-radius:14px;background:var(--bg-2);
+    margin:14px 0;overflow:hidden;
+  }
+  .droga.pick{border-color:rgba(243,159,6,.5)}
+  .droga summary{
+    cursor:pointer;list-style:none;display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+    padding:18px 20px;font-family:var(--disp);font-weight:650;font-size:17.5px;
+    user-select:none;transition:background .15s;
+  }
+  .droga summary::-webkit-details-marker{display:none}
+  .droga summary:hover{background:rgba(255,255,255,.03)}
+  .droga summary::after{
+    content:"+";margin-left:auto;font-family:var(--mono);font-size:20px;color:var(--orange);
+    transition:transform .2s;flex-shrink:0;
+  }
+  .droga[open] summary::after{transform:rotate(45deg)}
+  .droga .d-num{
+    font-family:var(--mono);font-size:12.5px;color:var(--orange);
+    border:1px solid var(--line);border-radius:8px;padding:4px 10px;background:rgba(255,255,255,.02);
+    flex-shrink:0;
+  }
+  .droga .d-body{padding:4px 20px 20px;border-top:1px dashed var(--line)}
+  .droga .d-body p:first-child{margin-top:14px}
+
+  /* HERO ACTIONS */
+  .hero-actions{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-top:26px}
+  .md-btn{font-size:13px;padding:11px 18px;border-radius:10px}
+  .md-hint{font-size:13.5px;color:var(--ink-dim);max-width:420px}
+
+  /* CTA */
+  .cta-line{
+    margin-top:22px;padding:12px 16px;border:1px dashed rgba(243,159,6,.4);border-radius:12px;
+    font-size:14.5px;color:var(--ink-dim);background:rgba(243,159,6,.05);max-width:640px;
+  }
+  .code-pill{
+    font-family:var(--mono);font-size:12.5px;font-weight:600;color:var(--orange);
+    background:rgba(243,159,6,.1);border:1px solid rgba(243,159,6,.35);
+    border-radius:6px;padding:2px 8px;letter-spacing:.06em;
+  }
+  .cta-box{
+    display:flex;align-items:center;justify-content:space-between;gap:26px;flex-wrap:wrap;
+    border:1px solid rgba(243,159,6,.4);border-radius:16px;padding:26px 28px;
+    background:linear-gradient(135deg, rgba(243,159,6,.09), rgba(243,159,6,.02) 60%);
+  }
+  .cta-box p{font-size:15px;max-width:560px}
+  .cta-btn{
+    flex-shrink:0;font-family:var(--disp);font-weight:650;font-size:16px;
+    background:var(--orange);color:#1A192C;border-radius:12px;padding:14px 26px;
+    border-bottom:none;transition:background .15s, transform .08s;
+  }
+  .cta-btn:hover{background:#ffb42a}
+  .cta-btn:active{transform:scale(.97)}
+
+  /* FOOTER */
+  footer{padding:48px 0 64px}
+  footer h2{font-size:clamp(20px,2.6vw,26px);margin-bottom:14px}
+  footer .links{display:flex;flex-wrap:wrap;gap:18px;margin-bottom:22px;font-size:15px}
+  footer p{font-size:13.5px;color:var(--ink-dim)}
+
+  @media (max-width:560px){
+    header{padding:52px 0 34px}
+    section{padding:44px 0}
+    .wrap{padding:0 16px}
+    .flow-item{grid-template-columns:44px 1fr;gap:12px}
+    .flow-num{width:44px;height:36px}
+    .cta-box{padding:22px 20px}
+  }
+</style>
+</head>
+<body>
+
+<header id="hero">
+  <div class="wrap">
+    <div class="kicker">Poradnik po odcinku</div>
+    <h1>Twój Codex w appce. <em>Bez klucza API.</em></h1>
+    <p class="lede">Agent Codexa wbudowany we <strong>własną aplikację</strong> przez Codex SDK, zalogowany
+    <strong>Twoim kontem ChatGPT</strong>. Appka to <strong>radar konkurencji YouTube</strong> na Twoim
+    VPS: czyta nowe filmy i komentarze z kanałów konkurencji i układa raport - o co pytają widzowie,
+    na co narzekają, czego jeszcze nikt nie nagrał.</p>
+    <p class="lede" style="margin-top:14px"><strong>Zero programowania.</strong> Plan robi agent, kod pisze
+    agent, Ty podajesz dane i klikasz logowania. Chcesz zbudować coś innego niż radar? Podmieniasz
+    jeden akapit i jedziesz tą samą drogą.</p>
+    <div class="hero-meta">
+      <span class="chip">⏱ ok. 2 godziny z agentem</span>
+      <span class="chip">🧑‍💻 zero programowania</span>
+      <span class="chip"><b>7 kroków</b></span>
+      <span class="chip">🔑 bez klucza API</span>
+    </div>
+    <div class="hero-actions">
+      <button class="copy-btn md-btn" data-copy="cb-p0">📋 Kopiuj prompt dla agenta</button>
+      <span class="md-hint">Nie chcesz czytać? Otwórz Codex (albo Claude Code) w pustym folderze i wklej ten prompt. Agent poprowadzi Cię przez wszystkie kroki.</span>
+    </div>
+    <div class="cta-line">
+      Nie masz jeszcze serwera? Ja korzystam z VPS-ów od <a href="https://www.hostinger.com/roberthost10">Hostingera</a>
+      (partner technologiczny kanału) - kod <span class="code-pill">ROBERTHOST</span> daje dodatkowy rabat.
+    </div>
+  </div>
+</header>
+
+<section id="zanim">
+  <div class="wrap">
+    <div class="step-tag">ZANIM ZACZNIESZ</div>
+    <h2>Czego potrzebujesz</h2>
+    <ul class="plain">
+      <li><strong>Konto ChatGPT Plus / Pro / Business</strong> z dostępem do Codexa.</li>
+      <li><strong>Node.js 18+</strong> (polecam 22) i <strong>Codex CLI zalogowany kontem ChatGPT</strong>
+      (<code class="inline">codex login status</code>).</li>
+      <li><strong><code class="inline">yt-dlp</code></strong> na komputerze - pobiera komentarze i napisy.</li>
+      <li><strong>VPS z Ubuntu 22.04/24.04 + Docker z Compose v2</strong> (test: <code class="inline">docker compose
+      version</code> → v2.x). Hostinger: szablon „Ubuntu 24.04 z Dockerem” przy tworzeniu VPS; inny serwer:
+      <code class="inline">curl -fsSL https://get.docker.com | sh</code>. Nic więcej - Node, yt-dlp i Codex są
+      w kontenerze. U mnie Hostinger KVM2. Bez serwera zatrzymujesz się po Kroku 4 i appka działa na laptopie.</li>
+      <li><strong>Tunel SSH do serwera</strong> - żeby panel widział tylko Ty. Opcjonalnie Tailscale
+      (<a href="https://szewowsky.github.io/tailscale-vps/">poradnik</a>), wtedy panel bez tunelu.</li>
+      <li><strong>Nie potrzebujesz</strong> klucza OpenAI API, klucza YouTube API ani frameworka frontendowego.</li>
+    </ul>
+    <div class="warn">
+      <span class="ico">⚠️</span>
+      <p><strong>Limit jest wspólny.</strong> Agent w appce zjada tę samą pulę co Codex na Twoim koncie.
+      Stąd bezpiecznik czasu na każdą turę i limit 3 filmów / 100 komentarzy na kanał.</p>
+    </div>
+    <div class="note">
+      <p><strong>Appka tylko dla Ciebie.</strong> Regulamin OpenAI zabrania współdzielenia konta. Appka dla
+      innych ludzi = <a href="https://developers.openai.com/siwc">Sign in with ChatGPT</a> (dziś open
+      source / lokalnie, serwerowe przez listę oczekujących) albo klucz API. Nigdy przez Twoje konto.</p>
+    </div>
+  </div>
+</section>
+
+<section id="o-co-chodzi">
+  <div class="wrap">
+    <div class="step-tag">O CO CHODZI</div>
+    <h2>Trzy rzeczy, zanim odpalisz agenta</h2>
+    <div class="flow">
+      <div class="flow-item">
+        <div class="flow-num">1</div>
+        <div><h4>API kontra subskrypcja</h4>
+        <p>Z <strong>kluczem API</strong> płacisz za każdy token. Na <strong>subskrypcji</strong> ChatGPT
+        masz limity (okno 5-godzinne i tygodniowe), a przy takiej appce zwykle wychodzi taniej. Ten
+        poradnik jedzie na subskrypcji.</p></div>
+      </div>
+      <div class="flow-item">
+        <div class="flow-num">2</div>
+        <div><h4>Agent SDK = gotowy agent do wpięcia w appkę</h4>
+        <p>Nie piszesz własnego agenta. <a href="https://www.npmjs.com/package/@openai/codex-sdk">Codex SDK</a>
+        opakowuje silnik Codexa i pozwala go uruchamiać z własnego kodu: wątki z pamięcią, odpowiedź
+        w zadanym schemacie JSON, sandbox z kontrolą sieci i katalogu, strumień zdarzeń z pracy agenta.
+        I pozwala mu jechać na <strong>Twoim koncie ChatGPT</strong>.</p></div>
+      </div>
+      <div class="flow-item">
+        <div class="flow-num">3</div>
+        <div><h4>Co buduje radar</h4>
+        <p>Kanały konkurencji → <strong>RSS</strong> (nowe filmy) + <strong>yt-dlp</strong> (komentarze
+        i transkrypcje z napisów) → raport w trzech kafelkach: <strong>pytania</strong> widzów,
+        <strong>narzekania</strong>, <strong>luki</strong> tematyczne. Drugi przebieg pamięta pierwszy
+        i oznacza pozycje „już zgłaszane”.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="krok-1">
+  <div class="wrap">
+    <div class="step-tag">KROK 1 / 7</div>
+    <h2>Sprawdź, że masz, czego trzeba <span class="time">2 min</span></h2>
+    <p>Jedna komenda na <strong>swoim komputerze</strong>:</p>
+    <div class="codeblock">
+      <div class="codebar"><span>Twój komputer · terminal</span><button class="copy-btn" data-copy="cb-k1">Kopiuj</button></div>
+      <pre id="cb-k1">node -v &amp;&amp; codex --version &amp;&amp; codex login status &amp;&amp; yt-dlp --version</pre>
+    </div>
+    <p>Brak Codexa: <code class="inline">npm i -g @openai/codex &amp;&amp; codex login</code>. Brak yt-dlp:
+    <code class="inline">brew install yt-dlp</code> (Mac) albo <code class="inline">pipx install yt-dlp</code>.</p>
+    <p class="test"><strong>Zadziałało, gdy</strong> widzisz Node 18+, wersję Codex CLI,
+    <code class="inline">Logged in using ChatGPT</code> i wersję yt-dlp.</p>
+
+    <h3>Najszybciej: cały wizard jednym promptem</h3>
+    <p>Tak robię to w filmie. Otwórz Codex (albo Claude Code) w nowym, pustym folderze i wklej poniższy
+    prompt. Agent sklonuje repo, przeczyta <code class="inline">WIZARD.md</code> i przeprowadzi Cię przez
+    fazy F0-F6, czyli dokładnie przez Kroki 1-7 z tej strony. Wolisz ręcznie? Czytaj dalej.</p>
+    <div class="codeblock">
+      <div class="codebar"><span>Codex · wiadomość do agenta</span><button class="copy-btn" data-copy="cb-p0">Kopiuj prompt</button></div>
+      <pre id="cb-p0">Sklonuj repozytorium https://github.com/Szewowsky/codex-sdk-radar.git do bieżącego katalogu,
+przeczytaj plik WIZARD.md w całości i przeprowadź mnie przez opisany tam wizard budowy
+„Radaru konkurencji YouTube” z agentem Codex SDK w środku - dokładnie według jego zasad
+i kolejności faz od F0 do F6. Idź krok po kroku: po każdej fazie pokaż test zaliczenia i nie
+przechodź dalej, jeśli nie przeszedł. Zacznij od sprawdzenia wymagań (F0), potem instalacja
+skilli Matta Pococka (F1), przepytanie mnie z wizji, specyfikacja i tickety (F2), budowa
+lokalna (F3), wdrożenie na mój VPS (F4), logowanie silnika kodem urządzenia (F5) i pierwszy
+przebieg z testem pamięci (F6). Zasady: bez
+klucza API, wątek agenta tylko w folderze data/ w trybie workspace-write, bezpiecznik czasu
+na każdą turę, appka słucha tylko na 127.0.0.1. Po ticketach przejdź do budowy sam, bez czekania na
+nowe prompty ode mnie - wymagania z WIZARD.md traktuj jako część speca. Logowania (Codex,
+Hostinger, ChatGPT) robię sam - Ty mówisz, gdzie kliknąć.</pre>
+    </div>
+    <div class="note">
+      <p><strong>U mnie:</strong> Node v22, Codex CLI 0.160, yt-dlp 2026.08. Konto ChatGPT Pro.</p>
+    </div>
+  </div>
+</section>
+
+<section id="krok-2">
+  <div class="wrap">
+    <div class="step-tag">KROK 2 / 7</div>
+    <h2>Zainstaluj skille Matta Pococka <span class="time">3 min</span></h2>
+    <p>Skille to gotowe procedury dla agenta: przepytanie z wizji, specyfikacja, cięcie na zadania.
+    Dzięki nim agent nie zgaduje, czego chcesz. Repo:
+    <a href="https://github.com/mattpocock/skills">github.com/mattpocock/skills</a> (MIT).</p>
+    <div class="codeblock">
+      <div class="codebar"><span>Twój komputer · terminal (Codex)</span><button class="copy-btn" data-copy="cb-k2-codex">Kopiuj</button></div>
+      <pre id="cb-k2-codex">mkdir radar &amp;&amp; cd radar &amp;&amp; git init
+npx skills@latest add mattpocock/skills -a codex -s '*'</pre>
+    </div>
+    <p><code class="inline">-a codex</code> = dla Codexa, <code class="inline">-s '*'</code> = <strong>cała
+    paczka</strong> (skille odwołują się do siebie nawzajem), bez <code class="inline">-g</code> =
+    <strong>lokalnie w tym projekcie</strong> (<code class="inline">.agents/skills/</code>), nie globalnie.
+    W tym poradniku używamy pięciu z nich:</p>
+    <ul class="plain">
+      <li><code class="inline">setup-matt-pocock-skills</code> - konfiguracja (raz na repo)</li>
+      <li><code class="inline">grill-with-docs</code> - przepytanie z wizji</li>
+      <li><code class="inline">to-spec</code> - specyfikacja</li>
+      <li><code class="inline">to-tickets</code> - cięcie na zadania</li>
+      <li><code class="inline">implement</code> - realizacja ticketów</li>
+    </ul>
+    <p>W Claude Code zamiast tego jedna komenda:</p>
+    <div class="codeblock">
+      <div class="codebar"><span>Twój komputer · terminal (Claude Code)</span><button class="copy-btn" data-copy="cb-k2-claude">Kopiuj</button></div>
+      <pre id="cb-k2-claude">claude plugins install mattpocock-skills</pre>
+    </div>
+    <h3>Konfiguracja skilli <span class="decyzja">Twój klik</span></h3>
+    <p>Potem w agencie uruchom raz konfigurację (w Claude Code:
+    <code class="inline">/setup-matt-pocock-skills</code>). Odpowiedzi: tracker = <strong>pliki lokalne</strong>,
+    dokumenty = <code class="inline">docs/</code>.</p>
+    <div class="codeblock">
+      <div class="codebar"><span>Codex · wiadomość do agenta</span><button class="copy-btn" data-copy="cb-k2-setup">Kopiuj</button></div>
+      <pre id="cb-k2-setup">$setup-matt-pocock-skills</pre>
+    </div>
+    <p class="test"><strong>Zadziałało, gdy</strong> <code class="inline">ls .agents/skills</code> pokazuje
+    5 folderów (Codex) albo <code class="inline">/grill-with-docs</code> jest na liście komend (Claude Code),
+    a setup zapisał konfigurację bez błędu.</p>
+    <div class="note">
+      <p><strong>U mnie:</strong> Codex czyta skille z <code class="inline">.agents/skills/</code>. Na nagraniu
+      widać, że to te same pliki, których używam w Claude Code.</p>
+    </div>
+  </div>
+</section>
+
+<section id="krok-3">
+  <div class="wrap">
+    <div class="step-tag">KROK 3 / 7</div>
+    <h2>Daj się przepytać, potem spec i tickety <span class="time">15 min</span></h2>
+    <p>Zamiast pisać „zbuduj mi radar” i liczyć na szczęście, najpierw robisz plan:
+    <strong>przepytanie z wizji → specyfikacja → małe zadania</strong>. Wklej w Codexie:</p>
+    <div class="codeblock">
+      <div class="codebar"><span>Codex · wiadomość do agenta</span><button class="copy-btn" data-copy="cb-p1">Kopiuj prompt</button></div>
+      <pre id="cb-p1">$grill-with-docs Chcę zbudować „Radar konkurencji YouTube”: aplikację www tylko dla mnie,
+w której podaję kanały konkurencji, a agent oparty o Codex SDK (@openai/codex-sdk, zalogowany
+moim kontem ChatGPT, bez klucza API) sprawdza nowe filmy i komentarze i układa raport:
+pytania widzów, narzekania, luki tematyczne. Przepytaj mnie z wizji.</pre>
+    </div>
+    <h3>Odpowiedzi domyślne</h3>
+    <p>Agent zada rundę pytań. Te odpowiedzi wklejasz hurtem, gdy przyjdzie pierwsza runda (zmień, co chcesz):</p>
+    <div class="codeblock">
+      <div class="codebar"><span>Codex · wiadomość do agenta</span><button class="copy-btn" data-copy="cb-p1-odp">Kopiuj odpowiedzi</button></div>
+      <pre id="cb-p1-odp">Moje odpowiedzi: filmy z RSS kanału (https://www.youtube.com/feeds/videos.xml?channel_id=UC...,
+channel_id wyciągaj przez yt-dlp --print channel_id), komentarze przez yt-dlp (max 100 na film,
+bez odpowiedzi), transkrypcje z napisów auto przez yt-dlp (pl,en; do ok. 3000 słów na film), 3 najnowsze filmy na kanał i tylko nowsze niż ostatni przebieg. Dane pobiera
+agent w swojej turze (nie appka), żeby w panelu był ślad kroków. Raport: 3 listy (pytania,
+narzekania, luki), każda pozycja z tytułem, 1 zdaniem, kanałem, linkiem do filmu, siłą
+i flagą „już zgłaszane”. Panel: Node 22 + Express, HTML bez frameworka, widoki: kanały,
+przycisk Przebieg, ślad kroków na żywo, raport w kafelkach, historia. Dane w JSON w data/.
+Pamięć: thread.id po pierwszym przebiegu, potem resumeThread. Opcje wątku: workspace-write
+w data/, skipGitRepoCheck, networkAccessEnabled, approvalPolicy never. Bezpiecznik 10 min
+na turę. Serwer słucha na HOST z env (domyślnie 127.0.0.1), port 3000, bez logowania w appce.
+Logowanie silnika z panelu: przycisk „Zaloguj kontem ChatGPT” uruchamia codex login
+--device-auth (CODEX_HOME), pokazuje link i kod z przyciskami Kopiuj, status z codex login
+status; wybór modelu (domyślnie gpt-6-luna) i effortu (domyślnie high) w ustawieniach. Harmonogram później. Testy: GET /health + przebieg na 1 kanale kończy się raportem zgodnym
+ze schematem docs/schema.json.</pre>
+    </div>
+    <h3>Specyfikacja i tickety</h3>
+    <p>Po przepytaniu dwie osobne wiadomości, jedna po drugiej:</p>
+    <div class="codeblock">
+      <div class="codebar"><span>Codex · wiadomość do agenta</span><button class="copy-btn" data-copy="cb-p2-spec">Kopiuj</button></div>
+      <pre id="cb-p2-spec">$to-spec</pre>
+    </div>
+    <div class="codeblock">
+      <div class="codebar"><span>Codex · wiadomość do agenta</span><button class="copy-btn" data-copy="cb-p2-tickets">Kopiuj</button></div>
+      <pre id="cb-p2-tickets">$to-tickets</pre>
+    </div>
+    <p>W Claude Code podmień <code class="inline">$nazwa-skilla</code> na <code class="inline">/nazwa-skilla</code>.</p>
+    <p class="test"><strong>Zadziałało, gdy</strong> masz <code class="inline">docs/spec.md</code> i folder
+    z 6-8 ticketami, a żaden punkt nie wymaga klucza YouTube API ani klucza OpenAI.</p>
+    <div class="note">
+      <p><strong>U mnie:</strong> pytań było ok. 12 w 3 rundach. Zmieniłem jedno: raport ma oznaczać pozycje
+      „już zgłaszane w poprzednim przebiegu”, bo chcę widzieć tylko nowe rzeczy.</p>
+    </div>
+  </div>
+</section>
+
+<section id="krok-4">
+  <div class="wrap">
+    <div class="step-tag">KROK 4 / 7</div>
+    <h2>Zbuduj appkę lokalnie <span class="time">30-60 min</span></h2>
+    <p>Agent pracuje, Ty patrzysz. Najpierw instalacja SDK w folderze <code class="inline">radar/</code>.
+    Instalujesz najnowszą wersję z npm; <code class="inline">package-lock.json</code> trzyma tę samą na serwerze.</p>
+    <div class="codeblock">
+      <div class="codebar"><span>Twój komputer · terminal</span><button class="copy-btn" data-copy="cb-k4-install">Kopiuj</button></div>
+      <pre id="cb-k4-install">npm init -y &amp;&amp; npm install @openai/codex-sdk express &amp;&amp; npm pkg set type=module</pre>
+    </div>
+    <p>Razem z SDK przychodzi silnik Codexa (<code class="inline">@openai/codex</code>), więc nic więcej nie
+    doinstalowujesz.</p>
+    <p>W Codexie wybierz model (<code class="inline">/model</code>). Mocniejszy model z wyższym effortem
+    jako nadzorca, który audytuje i zleca kod subagentom; na planie Plus wystarczy domyślny. Potem wklej:</p>
+    <div class="codeblock">
+      <div class="codebar"><span>Codex · wiadomość do agenta</span><button class="copy-btn" data-copy="cb-p3">Kopiuj prompt</button></div>
+      <pre id="cb-p3">Zbuduj aplikację „Radar konkurencji YouTube” według docs/spec.md i ticketów z docs/issues,
+ticket po tickecie, po każdym pokaż mi, co działa. Ty nadzorujesz i audytujesz: pisanie kodu
+każdego ticketu zlecaj subagentowi, a sam sprawdzaj wynik przed przejściem dalej. Zasady:
+- Agent w środku appki = @openai/codex-sdk (już zainstalowany, najnowsza wersja z npm; jeśli
+  brakuje, `npm install @openai/codex-sdk`).
+- Bez klucza API: `new Codex()` bez apiKey; SDK ma korzystać z silnika zalogowanego kontem
+  ChatGPT (codex login). Nie dodawaj OPENAI_API_KEY nigdzie.
+- Opcje wątku: sandboxMode "workspace-write", workingDirectory = katalog data/,
+  skipGitRepoCheck true, networkAccessEnabled true, approvalPolicy "never".
+- Dane bez YouTube API: nowe filmy z RSS kanału, komentarze i transkrypcje z napisów przez
+  yt-dlp (agent sam je pobiera w swojej turze).
+- Wynik tury wymuś przez outputSchema z docs/schema.json; sparsuj finalResponse jako JSON.
+- Pamięć: zapisz thread.id po pierwszym przebiegu w data/state.json, kolejne przebiegi
+  przez resumeThread(id).
+- Bezpiecznik: signal: AbortSignal.timeout(10 * 60_000) na każdą turę.
+- Logowanie z panelu: przycisk „Zaloguj kontem ChatGPT” uruchamia `codex login --device-auth`
+  (binarka z node_modules/.bin/codex, env CODEX_HOME), zdejmuje kody ANSI z wyjścia, pokazuje
+  link i kod w panelu z przyciskami Kopiuj, a status bierze z `codex login status`. Do tego
+  w ustawieniach wybór modelu (pole model w startThread, domyślnie gpt-6-luna; opcje gpt-6.1-sol,
+  gpt-6-sol, gpt-6-astra) i effortu (pole modelReasoningEffort: low/medium/high/xhigh/max,
+  domyślnie high), zapis w data/settings.json.
+- Ślad kroków: użyj runStreamed() i pokazuj w panelu eventy item.completed na żywo.
+- Serwer słucha na process.env.HOST || "127.0.0.1", port process.env.PORT || 3000.
+- Na końcu: npm run dev, pokaż mi adres panelu i poczekaj, aż potwierdzę pierwszy przebieg.</pre>
+    </div>
+    <p class="test"><strong>Zadziałało, gdy</strong> panel działa pod <code class="inline">http://127.0.0.1:3000</code>,
+    po dodaniu 1 kanału i kliknięciu „Przebieg” dostajesz raport w kafelkach, a drugi przebieg ma ten sam
+    <code class="inline">threadId</code> w <code class="inline">data/state.json</code>.</p>
+    <h3>Ściany, które mogą wyskoczyć</h3>
+    <div class="tabela-wrap">
+      <table>
+        <thead><tr><th>Objaw</th><th>Naprawa</th></tr></thead>
+        <tbody>
+          <tr><td>Agent „nie widzi internetu”</td><td><code class="inline">networkAccessEnabled: true</code> w opcjach wątku</td></tr>
+          <tr><td>„not a git repository”</td><td><code class="inline">skipGitRepoCheck: true</code></td></tr>
+          <tr><td><code class="inline">yt-dlp: command not found</code></td><td>zainstaluj yt-dlp i zrestartuj <code class="inline">npm run dev</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>Pełna lista niżej, w sekcji <a href="#pulapki">Pułapki</a>.</p>
+    <div class="note">
+      <p><strong>U mnie:</strong> GPT-6.1 Sol z effortem high nadzoruje i audytuje, pisanie kodu zleca GPT-6 Luna
+      z effortem max. Dane: RSS do filmów, yt-dlp do komentarzy i transkrypcji z napisów.</p>
+      <p>[UZUPEŁNIĆ PO PRZEBIEGU: ile ticketów, która ściana wyskoczyła, ile trwał pierwszy
+      przebieg i ile tokenów pokazał <code class="inline">turn.completed</code>]</p>
+    </div>
+  </div>
+</section>
+
+<section id="krok-5">
+  <div class="wrap">
+    <div class="step-tag">KROK 5 / 7</div>
+    <h2>Wdróż na VPS: connector Hostingera w Codexie <span class="time">20 min</span></h2>
+    <p>Connector (serwer MCP) daje Codexowi dostęp do Twojego konta Hostingera. Podpinasz raz:</p>
+    <p><strong>Najprościej, bez komend:</strong> w aplikacji Codex otwórz <strong>Wtyczki</strong>, znajdź
+    <strong>Hostinger</strong>, kliknij Zainstaluj i Połącz, zaloguj się do Hostingera w oknie, które się
+    otworzy.</p>
+    <p><strong>Z terminala (Codex CLI)</strong> ten sam efekt komendami:</p>
+    <div class="codeblock">
+      <div class="codebar"><span>Twój komputer · terminal</span><button class="copy-btn" data-copy="cb-k5-mcp">Kopiuj</button></div>
+      <pre id="cb-k5-mcp">codex mcp add hostinger --url https://mcp.hostinger.com
+codex mcp login hostinger
+codex mcp list</pre>
+    </div>
+    <p><strong>Logowanie do Hostingera</strong> <span class="decyzja">Twój klik</span>
+    <code class="inline">login</code> otwiera przeglądarkę, logujesz się do Hostingera sam (OAuth).
+    Token nie przechodzi przez czat. Potem w Codexie:</p>
+    <div class="codeblock">
+      <div class="codebar"><span>Codex · wiadomość do agenta</span><button class="copy-btn" data-copy="cb-p4">Kopiuj prompt</button></div>
+      <pre id="cb-p4">Przygotuj wdrożenie radaru jako projekt Docker (Dockerfile na node:22-slim + python3 + yt-dlp,
+docker-compose.yml z restart unless-stopped, portem "127.0.0.1:3000:3000", env HOST=0.0.0.0,
+PORT=3000, CODEX_HOME=/codex-home oraz wolumenami ./data:/app/data i ./codex-home:/codex-home;
+katalog codex-home ma przetrwać restart i aktualizację obrazu, bo trzyma logowanie i wątki).
+Potem przez connector Hostingera znajdź mój VPS (podam nazwę/IP), sprawdź, że ma Dockera,
+wgraj projekt do ~/radar (rsync po SSH, bez node_modules, data i codex-home) i uruchom
+`docker compose up -d --build`. Pokaż mi `docker compose ps` i logi z pierwszej minuty.
+Niczego nie usuwaj na serwerze.</pre>
+    </div>
+    <p>Panel otwierasz przez tunel SSH: <code class="inline">ssh -L 3000:127.0.0.1:3000 -p PORT USER@IP</code>,
+    potem <code class="inline">http://127.0.0.1:3000</code> w przeglądarce. Opcja: serwer w Tailscale →
+    w compose <code class="inline">"TS_IP:3000:3000"</code> i panel bez tunelu
+    (<a href="https://szewowsky.github.io/tailscale-vps/">poradnik</a>).</p>
+    <p><strong>Inny dostawca niż Hostinger?</strong> Ten sam prompt bez zdania o connectorze - agent wgra
+    pliki i uruchomi appkę przez SSH.</p>
+    <p class="test"><strong>Zadziałało, gdy</strong> <code class="inline">docker compose ps</code> pokazuje
+    running, z laptopa <code class="inline">curl http://127.0.0.1:3000/health</code> (przez tunel) odpowiada, a z internetu
+    <code class="inline">http://IP:3000</code> nie odpowiada.</p>
+    <div class="note">
+      <p><strong>U mnie:</strong> [UZUPEŁNIĆ PO PRZEBIEGU: czy connector poszedł przez mcp.hostinger.com czy
+      przez lokalny <code class="inline">npx hostinger-api-mcp</code>; czy aktualizacja przez connector „udawała sukces”]</p>
+    </div>
+  </div>
+</section>
+
+<section id="krok-6">
+  <div class="wrap">
+    <div class="step-tag">KROK 6 / 7</div>
+    <h2>Zaloguj silnik na serwerze: przycisk w panelu <span class="time">5 min</span></h2>
+    <p>Na serwerze nie ma przeglądarki, więc silnik loguje się <strong>kodem urządzenia</strong>, a przycisk
+    do tego jest w panelu. Nie musisz wchodzić na serwer.</p>
+    <p><strong>Najpierw na laptopie:</strong> ChatGPT → Ustawienia → Bezpieczeństwo → włącz
+    <strong>Device code authorization</strong> (w Business robi to admin). Bez tego logowanie nie przejdzie.</p>
+    <h3>Logowanie z panelu <span class="decyzja">Twój klik</span></h3>
+    <div class="flow">
+      <div class="flow-item">
+        <div class="flow-num">1</div>
+        <div><h4>Przycisk w panelu</h4>
+        <p>Panel <code class="inline">http://127.0.0.1:3000</code> (przez tunel) → Ustawienia → <strong>„Zaloguj kontem ChatGPT”</strong>.</p></div>
+      </div>
+      <div class="flow-item">
+        <div class="flow-num">2</div>
+        <div><h4>Link i kod</h4>
+        <p>Panel pokazuje link <code class="inline">https://auth.openai.com/codex/device</code> i kod
+        <code class="inline">XXXX-XXXX</code> (ważny 15 minut). Otwierasz link u siebie, wybierasz konto,
+        wpisujesz kod, potwierdzasz.</p></div>
+      </div>
+      <div class="flow-item">
+        <div class="flow-num">3</div>
+        <div><h4>Status i model</h4>
+        <p>Status zmienia się na „Zalogowano kontem ChatGPT”. Wybierz model (domyślnie <code class="inline">gpt-6-luna</code>) i effort (domyślnie <code class="inline">high</code>).</p></div>
+      </div>
+    </div>
+    <p>Pod spodem appka odpala <code class="inline">codex login --device-auth</code> z
+    <code class="inline">CODEX_HOME=/codex-home</code> i pokazuje Ci jego wynik.</p>
+    <p class="test"><strong>Zadziałało, gdy</strong> panel pokazuje „Zalogowano kontem ChatGPT”, a
+    <code class="inline">auth.json</code> leży w wolumenie <code class="inline">codex-home/</code>
+    (przetrwa <code class="inline">docker compose down &amp;&amp; up -d</code>).</p>
+    <h3>Plan B: przez SSH</h3>
+    <p>Gdy przycisk nie zadziała, ta sama komenda z terminala:</p>
+    <div class="codeblock">
+      <div class="codebar"><span>Serwer · przez SSH</span><button class="copy-btn" data-copy="cb-p5">Kopiuj</button></div>
+      <pre id="cb-p5">ssh -p PORT USER@IP "cd ~/radar &amp;&amp; docker compose exec radar npx codex login --device-auth"</pre>
+    </div>
+    <p>Sprawdzenie (na serwerze, w <code class="inline">~/radar</code>) - ma odpowiedzieć
+    <code class="inline">Logged in using ChatGPT</code>:</p>
+    <div class="codeblock">
+      <div class="codebar"><span>Serwer · przez SSH</span><button class="copy-btn" data-copy="cb-k6-status">Kopiuj</button></div>
+      <pre id="cb-k6-status">docker compose exec radar npx codex login status</pre>
+    </div>
+    <div class="warn">
+      <span class="ico">⚠️</span>
+      <p><strong>Plik <code class="inline">codex-home/auth.json</code> to hasło do Twojego konta.</strong>
+      Nie do repo, nie do czatu. Przycisk loguje Twoje konto w Twojej appce - nie udostępniasz go
+      innym ludziom.</p>
+    </div>
+    <div class="note">
+      <p><strong>U mnie:</strong> [UZUPEŁNIĆ PO PRZEBIEGU: czy przełącznik Device code był wyłączony; ile trwało]</p>
+    </div>
+  </div>
+</section>
+
+<section id="krok-7">
+  <div class="wrap">
+    <div class="step-tag">KROK 7 / 7</div>
+    <h2>Pierwszy przebieg na serwerze i test pamięci <span class="time">15 min</span></h2>
+    <ul class="plain">
+      <li>Panel <code class="inline">http://127.0.0.1:3000</code> (przez tunel) → dodaj 2-3 kanały → <strong>„Przebieg”</strong>.</li>
+      <li>Patrzysz na ślad kroków: RSS, yt-dlp per film, analiza, <code class="inline">turn.completed</code>
+      z liczbą tokenów.</li>
+      <li>Raport w kafelkach: pytania / narzekania / luki, z kanałem i filmem źródłowym.</li>
+      <li>Restart nie kasuje stanu: historia i logowanie zostają.</li>
+    </ul>
+    <div class="codeblock">
+      <div class="codebar"><span>Serwer · przez SSH</span><button class="copy-btn" data-copy="cb-k7-restart">Kopiuj</button></div>
+      <pre id="cb-k7-restart">docker compose restart radar</pre>
+    </div>
+    <h3>Test pamięci</h3>
+    <p>Odpal drugi przebieg. W śladzie ten sam <code class="inline">threadId</code>, a część pozycji
+    oznaczona „już zgłaszane”. To znaczy, że agent pamięta, co Ci już pokazał.</p>
+    <p class="test"><strong>Zadziałało, gdy</strong> masz dwa udane przebiegi, pamięć wątku widać w raporcie,
+    a po <code class="inline">docker compose restart radar</code> panel wraca z historią i logowaniem.</p>
+    <div class="note">
+      <p><strong>U mnie:</strong> [UZUPEŁNIĆ PO PRZEBIEGU: co radar znalazł - 2-3 pozycje; czas; tokeny]</p>
+    </div>
+  </div>
+</section>
+
+<section id="twoj-pomysl">
+  <div class="wrap">
+    <div class="step-tag">PRZERÓB POD SWÓJ POMYSŁ</div>
+    <h2>Ta sama droga, inna appka</h2>
+    <p>Radar to tylko przykład. Zasady zostają te same: bez klucza API, agent
+    w jednym folderze, bezpiecznik czasu, appka tylko dla Ciebie. Wpisz swój pomysł w nawias
+    kwadratowy i wklej w Codexie, w folderze ze sklonowanym repo:</p>
+    <div class="codeblock">
+      <div class="codebar"><span>Codex · wiadomość do agenta</span><button class="copy-btn" data-copy="cb-p6">Kopiuj prompt</button></div>
+      <pre id="cb-p6">Przeczytaj WIZARD.md i docs/prompts.md z tego repo. To wizard budowy appki z agentem Codex SDK
+w środku na przykładzie „Radaru konkurencji YouTube”. Chcę zbudować tą samą drogą inną appkę:
+[TU OPISZ SWÓJ POMYSŁ W 2-3 ZDANIACH: co appka robi, skąd bierze dane, co ma zwracać].
+Zachowaj wszystkie zasady wizardu (bez klucza API, workspace-write
+w data/, bezpiecznik czasu, appka tylko dla mnie) i przeprowadź mnie przez fazy F0-F6,
+podmieniając w promptach i w schemacie docs/schema.json wszystko, co dotyczyło radaru,
+na mój pomysł. Oficjalna dokumentacja Codex SDK: https://learn.chatgpt.com/docs/codex-sdk
+i https://www.npmjs.com/package/@openai/codex-sdk - trzymaj się jej, a czego w niej nie ma,
+nie wymyślaj. Zacznij od przepytania mnie z wizji.</pre>
+    </div>
+  </div>
+</section>
+
+<section id="pulapki">
+  <div class="wrap">
+    <div class="step-tag">ZJEDZONE ZA CIEBIE</div>
+    <h2>Pułapki, które wizard już zna</h2>
+
+    <details class="droga pick">
+      <summary><span class="d-num">1</span>Agent „nie może pobrać” RSS</summary>
+      <div class="d-body">
+        <p>Komenda kończy się błędem sieci, bo sandbox domyślnie nie ma internetu. Naprawa:
+        <code class="inline">networkAccessEnabled: true</code> w opcjach wątku (albo
+        <code class="inline">new Codex({ config: { sandbox_workspace_write: { network_access: true } } })</code>).</p>
+      </div>
+    </details>
+
+    <details class="droga">
+      <summary><span class="d-num">2</span>Błąd „not a git repository”</summary>
+      <div class="d-body">
+        <p>Silnik wymaga repo git i odmawia pracy w <code class="inline">data/</code>. Naprawa:
+        <code class="inline">skipGitRepoCheck: true</code>.</p>
+      </div>
+    </details>
+
+    <details class="droga">
+      <summary><span class="d-num">3</span><code class="inline">yt-dlp: command not found</code> w śladzie</summary>
+      <div class="d-body">
+        <p>Brak narzędzia w PATH procesu. Zainstaluj lokalnie; w Dockerze dodaj do obrazu (Krok 5).</p>
+      </div>
+    </details>
+
+    <details class="droga">
+      <summary><span class="d-num">4</span>Tura trwa i trwa</summary>
+      <div class="d-body">
+        <p>Za dużo filmów i komentarzy. Limit 3 filmów i 100 komentarzy na kanał, bezpiecznik 10 minut
+        na turę (<code class="inline">AbortSignal.timeout(10 * 60_000)</code>).</p>
+      </div>
+    </details>
+
+    <details class="droga">
+      <summary><span class="d-num">5</span><code class="inline">finalResponse</code> nie jest JSON-em</summary>
+      <div class="d-body">
+        <p>Schemat za luźny albo brak <code class="inline">outputSchema</code>. Naprawa:
+        <code class="inline">additionalProperties: false</code> i wszystkie pola w
+        <code class="inline">required</code> - tak jak w <a href="https://github.com/Szewowsky/codex-sdk-radar/blob/main/docs/schema.json">docs/schema.json</a>.</p>
+      </div>
+    </details>
+
+    <details class="droga">
+      <summary><span class="d-num">6</span>Panel pusty, 0 eventów</summary>
+      <div class="d-body">
+        <p>Użyty <code class="inline">run()</code> zamiast <code class="inline">runStreamed()</code>.
+        Przełącz na <code class="inline">runStreamed()</code>, wtedy ślad kroków idzie na żywo.</p>
+      </div>
+    </details>
+
+    <details class="droga">
+      <summary><span class="d-num">7</span>Connector udaje sukces przy aktualizacji</summary>
+      <div class="d-body">
+        <p>Connector Hostingera dobrze radzi sobie z pierwszym wdrożeniem, ale przy aktualizacjach potrafi
+        zgłosić sukces, gdy pliki się nie zmieniły. Poprawki wysyłaj <code class="inline">rsync</code>
+        po SSH i sprawdzaj <code class="inline">docker compose logs</code>.</p>
+      </div>
+    </details>
+
+    <details class="droga">
+      <summary><span class="d-num">8</span>yt-dlp w kontenerze starszy niż na laptopie</summary>
+      <div class="d-body">
+        <p>Skutek: błędy pobierania komentarzy. W Dockerfile instaluj najnowszy
+        (<code class="inline">pipx install yt-dlp</code> albo binarka z GitHub Releases), nie z
+        <code class="inline">apt</code>.</p>
+      </div>
+    </details>
+
+    <details class="droga">
+      <summary><span class="d-num">9</span>Docker omija ufw</summary>
+      <div class="d-body">
+        <p>Dlatego port bindujesz na <code class="inline">127.0.0.1</code> (albo adres Tailscale),
+        a nie na <code class="inline">0.0.0.0</code>, i nie liczysz na firewall systemowy. Na Hostingerze
+        dodatkowo firewall w panelu działa przed serwerem.</p>
+      </div>
+    </details>
+  </div>
+</section>
+
+<section id="cta" style="border-bottom:0">
+  <div class="wrap">
+    <div class="cta-box">
+      <div>
+        <h3 style="margin-top:0">Nie masz jeszcze VPS-a?</h3>
+        <p style="margin-bottom:0">Radar ma chodzić 24/7, więc potrzebuje serwera. Ja swoje trzymam u Hostingera -
+        to partner technologiczny kanału, więc z kodem <span class="code-pill">ROBERTHOST</span> dostajesz
+        dodatkowy rabat, a ja małą prowizję. Sprzęt bez zmian, cena niższa.</p>
+      </div>
+      <a class="cta-btn" href="https://www.hostinger.com/roberthost10">Postaw serwer →</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <h2>Materiały i licencje</h2>
+    <div class="links">
+      <a href="https://youtube.com/@robert_szewczyk">Odcinek na YouTube</a>
+      <a href="https://github.com/Szewowsky/codex-sdk-radar">Repo: wizard + prompty</a>
+      <a href="https://www.npmjs.com/package/@openai/codex-sdk">Codex SDK na npm</a>
+      <a href="https://learn.chatgpt.com/docs/auth">Docs: logowanie i device auth</a>
+      <a href="https://github.com/mattpocock/skills">Skille Matta Pococka</a>
+      <a href="https://szewowsky.github.io/tailscale-vps/">Schowaj VPS za Tailscale</a>
+    </div>
+    <p>Materiał towarzyszący do odcinka o wbudowaniu agenta Codexa we własną aplikację. Wizard, prompty
+    i schemat z tego repozytorium są na licencji MIT. Codex SDK (<code class="inline">@openai/codex-sdk</code>)
+    to osobny produkt OpenAI na licencji Apache-2.0 - ten poradnik jest nieoficjalny i nie jest powiązany
+    ani z OpenAI, ani z Hostingerem. Zasady OpenAI opisane na dzień 2026-10-06: sprawdź aktualne, zanim
+    wypuścisz coś w świat.</p>
+  </div>
+</footer>
+
+<script>
+  function fallbackCopy(text){
+    var ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    var ok = false;
+    try { ok = document.execCommand('copy'); } catch(e) {}
+    document.body.removeChild(ta);
+    return ok;
+  }
+  document.querySelectorAll('.copy-btn').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var el = document.getElementById(btn.dataset.copy);
+      if (!el) return;
+      var text = el.innerText;
+      var mark = function(ok){
+        var old = btn.textContent;
+        btn.textContent = ok ? 'Skopiowane ✓' : 'Zaznacz i skopiuj ręcznie';
+        if (ok) btn.classList.add('done');
+        setTimeout(function(){ btn.textContent = old; btn.classList.remove('done'); }, 1800);
+      };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(function(){ mark(true); },
+          function(){ mark(fallbackCopy(text)); });
+      } else {
+        mark(fallbackCopy(text));
+      }
+    });
+  });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,61 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "RadarReport",
+  "description": "Raport jednego przebiegu Radaru konkurencji YouTube. Przekazywany do thread.run(prompt, { outputSchema }).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["podsumowanie", "przejrzane", "pytania", "narzekania", "luki"],
+  "properties": {
+    "podsumowanie": {
+      "type": "string",
+      "description": "2-3 zdania: co najważniejszego wynika z tego przebiegu."
+    },
+    "przejrzane": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kanaly", "filmy", "komentarze"],
+      "properties": {
+        "kanaly": { "type": "integer", "minimum": 0 },
+        "filmy": { "type": "integer", "minimum": 0 },
+        "komentarze": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "pytania": {
+      "type": "array",
+      "description": "O co pytają widzowie pod filmami konkurencji.",
+      "items": { "$ref": "#/$defs/pozycja" }
+    },
+    "narzekania": {
+      "type": "array",
+      "description": "Na co widzowie narzekają (brakujący krok, niejasność, błąd).",
+      "items": { "$ref": "#/$defs/pozycja" }
+    },
+    "luki": {
+      "type": "array",
+      "description": "Tematy, o które widzowie proszą, a żaden z przejrzanych kanałów ich nie nagrał.",
+      "items": { "$ref": "#/$defs/pozycja" }
+    }
+  },
+  "$defs": {
+    "pozycja": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["tytul", "opis", "kanal", "film_url", "sila", "juz_zglaszane"],
+      "properties": {
+        "tytul": { "type": "string", "description": "Krótki nagłówek na kafelek (do 8 słów)." },
+        "opis": { "type": "string", "description": "Jedno zdanie z konkretem, bez cytowania całych komentarzy." },
+        "kanal": { "type": "string", "description": "Nazwa kanału źródłowego." },
+        "film_url": { "type": "string", "description": "Adres filmu, pod którym to zauważono." },
+        "sila": {
+          "type": "string",
+          "enum": ["niska", "srednia", "wysoka"],
+          "description": "Jak często / jak mocno się powtarza."
+        },
+        "juz_zglaszane": {
+          "type": "boolean",
+          "description": "true, jeśli ta sama rzecz była w raporcie z poprzedniego przebiegu tego wątku."
+        }
+      }
+    }
+  }
+}
