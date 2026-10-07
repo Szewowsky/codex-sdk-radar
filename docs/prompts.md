@@ -111,8 +111,10 @@ każdego ticketu zlecaj subagentowi, a sam sprawdzaj wynik przed przejściem dal
   Brak nowych filmów nie kończy przebiegu: tura idzie na materiałach z ostatniego udanego
   przebiegu (bez ponownego pobierania) i oznacza powtórzone wnioski „już zgłaszane”.
 - Bezpiecznik: AbortSignal.timeout(10 * 60_000) na turę; drugi równoległy start = 409.
-- Hasło do panelu: zapytaj mnie polem formularza (nie zwykłą wiadomością), hash scrypt do .env
-  jako RADAR_PANEL_PASSWORD_HASH, .env w .gitignore i .dockerignore. Bez hasha appka nie startuje.
+- Hasło do panelu: NIE pytaj o nie w czacie ani polem formularza. Napisz skrypt
+  scripts/set-password.js (pyta 2x ukrytym polem w terminalu, zapisuje tylko hash scrypt do .env
+  jako RADAR_PANEL_PASSWORD_HASH w pojedynczych cudzysłowach, 0600) i daj mi komendę do
+  uruchomienia. .env w .gitignore i .dockerignore. Bez hasha appka nie startuje.
   Sesja w cookie HttpOnly+Secure+SameSite=Strict (Secure tylko gdy RADAR_PUBLIC_URL to https),
   limit 5 prób / 15 min per IP, /api/* za sesją oprócz /health.
 - Ekran startowy po haśle, dopóki brakuje logowania ChatGPT, klucza YouTube lub kanałów:
@@ -153,9 +155,10 @@ Wdróż radar na mój VPS. Użyj gotowych plików z deploy/ tego repo (Dockerfil
 z Caddy, Caddyfile, profile sandboxa) - skopiuj je do folderu appki, nie pisz własnych.
 1. Przez wtyczkę Hostingera znajdź mój VPS (podam, który), odczytaj jego IP i subdomenę
    srvXXXXXX.hstgr.cloud. Sprawdź po SSH `docker compose version` i `id -u` użytkownika.
-2. Zapytaj mnie polem formularza o hasło do panelu. Policz hash scrypt, zapisz .env na serwerze
-   (RADAR_DOMAIN, RADAR_PUBLIC_URL=https://..., RADAR_PANEL_PASSWORD_HASH, RADAR_SESSION_SECRET
-   losowy). Hasła nie wypisuj w czacie ani w logach.
+2. Hasło do panelu: daj mi komendę `node scripts/set-password.js` (ta sama co lokalnie) do
+   uruchomienia na serwerze przez SSH albo przenieś gotowy hash z lokalnego .env. Zapisz .env na
+   serwerze (RADAR_DOMAIN, RADAR_PUBLIC_URL=https://..., RADAR_PANEL_PASSWORD_HASH w pojedynczych
+   cudzysłowach, RADAR_SESSION_SECRET losowy). Hasła nie wypisuj w czacie ani w logach.
 3. Wgraj projekt do ~/radar (rsync po SSH, bez node_modules, data, codex-home, .git), ustaw
    `user:` w compose na UID z kroku 1, utwórz data/ i codex-home/ jako ten użytkownik.
 4. Daj mi do wklejenia jedno polecenie z sudo: `ssh -t USER@IP 'bash ~/radar/deploy/sandbox/install-sandbox-profile.sh'`
