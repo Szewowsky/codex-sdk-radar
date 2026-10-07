@@ -96,7 +96,7 @@ każdego ticketu zlecaj subagentowi, a sam sprawdzaj wynik przed przejściem dal
 
 ## P4 - Wdrożenie na VPS (Hostinger przez connector w Codexie)
 
-Najpierw podpinasz connector: w aplikacji Codex Wtyczki → Hostinger → Zainstaluj i Połącz
+Najpierw podpinasz connector: w aplikacji Codex Wtyczki → Hostinger Connector → Zainstaluj i Połącz
 (logowanie do Hostingera w oknie). Z terminala (Codex CLI) to samo komendami:
 
 ```bash

@@ -299,7 +299,7 @@ Connector (serwer MCP) daje Codexowi dostęp do Twojego konta Hostingera: lista 
 serwera, operacje na maszynie. Hostinger ma serwer hostowany z logowaniem OAuth.
 
 **Najprościej: z zakładki Wtyczki w aplikacji Codex** (bez komend). W aplikacji Codex otwórz
-**Wtyczki**, znajdź **Hostinger**, kliknij Zainstaluj i Połącz - otworzy się logowanie do
+**Wtyczki**, znajdź **Hostinger Connector**, kliknij Zainstaluj i Połącz - otworzy się logowanie do
 Hostingera, zatwierdzasz i connector jest w Codexie.
 
 **Z terminala (Codex CLI) - ten sam efekt komendami:**

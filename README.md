@@ -192,7 +192,7 @@ w kafelkach. Drugi przebieg ma ten sam `threadId` w `data/state.json`.
 
 Connector (serwer MCP) daje Codexowi dostęp do Twojego konta Hostingera. Podpinasz raz.
 
-**Najprościej, bez komend:** w aplikacji Codex otwórz **Wtyczki**, znajdź **Hostinger**, kliknij
+**Najprościej, bez komend:** w aplikacji Codex otwórz **Wtyczki**, znajdź **Hostinger Connector**, kliknij
 Zainstaluj i Połącz, zaloguj się do Hostingera w oknie, które się otworzy.
 
 **Z terminala (Codex CLI):**
