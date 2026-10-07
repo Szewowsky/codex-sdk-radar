@@ -394,6 +394,12 @@ Niczego nie usuwaj na serwerze. Inny dostawca niż Hostinger: pomiń wtyczkę, d
 Jeśli powiem „wariant Tailscale”, zrób F4d zamiast kroków z domeną i Caddy.
 ```
 
+Hasło do `sudo` to hasło Twojego użytkownika na serwerze (to samo, co do logowania SSH hasłem,
+ustawione przy tworzeniu VPS w panelu Hostingera). Przy pytaniu `[sudo] password for USER:`
+wpisujesz je na ślepo (kursor się nie porusza) i Enter. Nie masz go? Hostinger -> VPS -> Ustawienia
+-> zmiana hasła root, potem na serwerze `sudo passwd USER`. Wygodnie: trzymaj je w menedżerze haseł
+albo w pęku kluczy i wklejaj ze schowka, zamiast przepisywać.
+
 ### F4c - Ściany
 
 - **Sandbox agenta w kontenerze nie startuje** („nie można utworzyć przestrzeni nazw” /
@@ -412,7 +418,8 @@ Jeśli powiem „wariant Tailscale”, zrób F4d zamiast kroków z domeną i Cad
   Sprawdzenie: `docker compose config | grep PASSWORD_HASH` ma pokazać cały hash.
 - **Właściciel danych.** Kontener działa jako zwykły użytkownik; jeśli `user:` w compose nie
   zgadza się z właścicielem `./data` i `./codex-home` na serwerze, appka nie zapisze plików.
-  `id -u` na serwerze -> `user: "UID:GID"` w compose, katalogi tworzy ten sam użytkownik.
+  `id -u` na serwerze -> `user: "UID:GID"` w compose, katalogi tworzy ten sam użytkownik. Jeśli appka ma moduły w podkatalogu
+  (np. `lib/`), agent dopisuje do Dockerfile `COPY lib/ ./lib/` - to jedyna spodziewana zmiana poza `user:`.
 - **Certyfikat się nie wystawia.** Domena nie wskazuje na IP serwera (`dig +short DOMENA`) albo
   port 80/443 zamknięty w firewallu Hostingera (panel -> VPS -> Firewall). Caddy loguje przyczynę:
   `docker compose logs caddy`.

@@ -595,7 +595,8 @@ każdego ticketu zlecaj subagentowi, a sam sprawdzaj wynik przed przejściem dal
     <div class="note">
       <p><strong>U mnie:</strong> Claude Opus 5.5 nadzorował i delegował kod subagentom. 8 ticketów, <code class="inline">npm test</code> 61/61.
       Pierwszy przebieg lokalnie (1 kanał, 3 filmy, <code class="inline">gpt-6-luna</code> / <code class="inline">high</code>): 3 min 19 s,
-      raport 3 pytania / 3 narzekania / 4 luki, 47 948 tokenów. Ściany: serwery MCP z wtyczek Codexa („invalid transport”)
+      raport 3 pytania / 3 narzekania / 4 luki, 47 948 tokenów. Drugi przebieg (bez nowych filmów): ten sam wątek,
+      10/10 pozycji „już zgłaszane”, 20 s, 82 z 127 tys. tokenów z cache. Ściany: serwery MCP z wtyczek Codexa („invalid transport”)
       i Apify <code class="inline">TIMED-OUT</code> na jednym filmie - obie są już w tym wizardzie.</p>
     </div>
   </div>
@@ -634,6 +635,9 @@ z Caddy, Caddyfile, profile sandboxa) - skopiuj je do folderu appki, nie pisz w�
 Niczego nie usuwaj na serwerze. Inny dostawca niż Hostinger: pomiń wtyczkę, dane SSH podam sam.
 Jeśli powiem „wariant Tailscale”, zrób F4d zamiast kroków z domeną i Caddy.</pre>
     </div>
+    <p>Hasło do <code class="inline">sudo</code> to hasło Twojego użytkownika na serwerze (ustawione przy tworzeniu VPS
+    w panelu Hostingera). Wpisujesz je na ślepo i Enter. Nie masz go? Hostinger → VPS → Ustawienia → zmiana hasła root,
+    potem <code class="inline">sudo passwd USER</code> na serwerze. Trzymaj je w menedżerze haseł i wklejaj ze schowka.</p>
     <h3>Jedno sudo: profil sandboxa <span class="decyzja">Twój klik</span></h3>
     <p>Sandbox Codexa sam izoluje komendy agenta, a domyślne zabezpieczenia Dockera (seccomp + AppArmor)
     blokują mu tę izolację: klatka w klatce (objaw: <code class="inline">bwrap: ... Operation not permitted</code>).

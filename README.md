@@ -254,7 +254,8 @@ subagenta `listen EPERM` → uprawnienie do lokalnego nasłuchu dla testu.
 
 > **U mnie:** Claude Opus 5.5 nadzorował i delegował kod subagentom. 8 ticketów, `npm test` 61/61.
 > Pierwszy przebieg lokalnie (1 kanał, 3 filmy, `gpt-6-luna` / `high`): 3 min 19 s, raport 3 pytania /
-> 3 narzekania / 4 luki, 47 948 tokenów. Ściany: serwery MCP z wtyczek Codexa („invalid transport”)
+> 3 narzekania / 4 luki, 47 948 tokenów. Drugi przebieg (bez nowych filmów): ten sam wątek, 10/10 pozycji
+> „już zgłaszane”, 20 s, 82 z 127 tys. tokenów z cache. Ściany: serwery MCP z wtyczek Codexa („invalid transport”)
 > i Apify `TIMED-OUT` na jednym filmie - obie są już w tym wizardzie.
 
 ### Krok 5 - Wdróż na VPS: gotowe pliki z deploy/ (20 min)
