@@ -137,7 +137,7 @@ Agent zada rundę pytań. Gotowe odpowiedzi (zmień, co chcesz):
 | Pamięć agenta | po pierwszym przebiegu zapisz `thread.id`; kolejne przebiegi `resumeThread(id)`, żeby agent wiedział, co już zgłaszał |
 | Uprawnienia wątku | `sandboxMode: "workspace-write"`, `workingDirectory: data/`, `skipGitRepoCheck: true`, `networkAccessEnabled: true`, `approvalPolicy: "never"` |
 | Bezpiecznik | `AbortSignal.timeout(10 * 60_000)` na turę; przerwana tura = raport „przerwano po 10 min” w historii |
-| Logowanie silnika z panelu | przycisk **„Zaloguj kontem ChatGPT”** w panelu: appka uruchamia `codex login --device-auth` (binarka z `node_modules/.bin/codex`, env `CODEX_HOME`), wyciąga z wyjścia link `https://auth.openai.com/codex/device` i kod `XXXX-XXXX` (wyjście ma kody kolorów ANSI, trzeba je zdjąć) i pokazuje oba w panelu z przyciskami Kopiuj; proces czeka, aż potwierdzisz w przeglądarce; status przez `codex login status` (kod wyjścia 0 = zalogowany). Logowanie tylko dla właściciela appki, nie dla innych ludzi |
+| Logowanie silnika z panelu | przycisk **„Zaloguj kontem ChatGPT”** w panelu: appka uruchamia `codex login --device-auth` (binarka z `node_modules/.bin/codex`, env `CODEX_HOME`), wyciąga z wyjścia link `https://auth.openai.com/codex/device` i kod (np. `ABCD-EFGH1`; segmenty mają różną długość, więc wzorzec typu `[A-Z0-9]+-[A-Z0-9]+` z linii po „one-time code”, nie sztywne 4-4; wyjście ma kody kolorów ANSI, trzeba je zdjąć) i pokazuje oba w panelu z przyciskami Kopiuj; proces czeka, aż potwierdzisz w przeglądarce; status przez `codex login status` (kod wyjścia 0 = zalogowany). Logowanie tylko dla właściciela appki, nie dla innych ludzi |
 | Wybór modelu i effortu | w ustawieniach panelu dwie listy: model (`gpt-6-luna` domyślnie, do wyboru `gpt-6.1-sol`, `gpt-6-sol`, `gpt-6-astra`; pole `model` w `startThread`) i effort (`low` / `medium` / `high` / `xhigh` / `max`, domyślnie `high`; pole `modelReasoningEffort`). Zapis w `data/settings.json`, czytany przy każdym przebiegu |
 | Dostęp | serwer słucha na `HOST` z env (domyślnie `127.0.0.1`), port 3000, bez logowania w appce; na serwerze wchodzisz tunelem SSH. Żądania zmieniające dane (POST/DELETE) tylko gdy nagłówek `Origin` jest lokalny (`127.0.0.1`/`localhost`) i ma ten sam host:port co nagłówek `Host`; obcy `Origin` = 403. Porównuj z `Host`, nie z portem, na którym słucha serwer - przez tunel na innym porcie lokalnym (np. 3002) i w Dockerze te porty się różnią |
 | Harmonogram | na start ręcznie z panelu; cron w Dockerze jako osobny ticket „później” |
@@ -220,7 +220,8 @@ każdego ticketu zlecaj subagentowi, a sam sprawdzaj wynik przed przejściem dal
 - Bezpiecznik: signal: AbortSignal.timeout(10 * 60_000) na każdą turę.
 - Logowanie z panelu: przycisk „Zaloguj kontem ChatGPT” uruchamia `codex login --device-auth`
   (binarka z node_modules/.bin/codex, env CODEX_HOME), zdejmuje kody ANSI z wyjścia, pokazuje
-  link i kod w panelu z przyciskami Kopiuj, a status bierze z `codex login status`. Do tego
+  link i kod w panelu z przyciskami Kopiuj (kod np. ABCD-EFGH1: segmenty różnej długości,
+  nie zakładaj 4-4; sprawdź na prawdziwym wyjściu), a status bierze z `codex login status`. Do tego
   w ustawieniach wybór modelu (pole model w startThread, domyślnie gpt-6-luna; opcje gpt-6.1-sol,
   gpt-6-sol, gpt-6-astra) i effortu (pole modelReasoningEffort: low/medium/high/xhigh/max,
   domyślnie high), zapis w data/settings.json.
@@ -392,7 +393,7 @@ przejdzie.
 
 1. Otwórz tunel (`ssh -L 3000:127.0.0.1:3000 -p PORT USER@IP`), potem panel `http://127.0.0.1:3000` -> Ustawienia ->
    **„Zaloguj kontem ChatGPT”**.
-2. Panel pokazuje link `https://auth.openai.com/codex/device` i kod w formacie `XXXX-XXXX`
+2. Panel pokazuje link `https://auth.openai.com/codex/device` i jednorazowy kod (np. `ABCD-EFGH1`)
    (ważny 15 minut). Otwórz link u siebie, wybierz konto, wpisz kod, potwierdź.
 3. Panel odświeża status na „Zalogowano kontem ChatGPT” (w tle: `codex login status`, kod
    wyjścia 0). Wybierz model (domyślnie `gpt-6-luna`) i effort (domyślnie `high`).
@@ -400,6 +401,14 @@ przejdzie.
 Co appka robi pod spodem (tak ma to zbudować agent w F3): uruchamia
 `node_modules/.bin/codex login --device-auth` z env `CODEX_HOME=/codex-home`, czyta jego wyjście,
 zdejmuje kody kolorów ANSI, wyciąga link i kod, trzyma proces żywy do potwierdzenia.
+
+**Ściany F5 (z mojego przebiegu):**
+
+| Objaw | Przyczyna | Naprawa |
+|---|---|---|
+| Klikam „Zaloguj”, a kod się nie pojawia | appka szuka kodu w formacie 4-4, a `codex login --device-auth` wypisuje np. `ABCD-EFGH1` (drugi segment dłuższy) | luźniejszy wzorzec (`[A-Z0-9]+-[A-Z0-9]+`) + test na prawdziwym wyjściu z kontenera |
+| Przycisk nic nie robi, w konsoli przeglądarki 403 | tunel na innym porcie lokalnym (np. 3002), a appka porównuje `Origin` z portem, na którym słucha w kontenerze (3000) | porównuj `Origin` z nagłówkiem `Host` (tabela F2a, „Dostęp”) |
+| Kod jest, ale logowanie się nie kończy | wyłączone „Device code authorization” w ChatGPT | ChatGPT -> Ustawienia -> Bezpieczeństwo -> włącz, uruchom logowanie od nowa |
 
 **Plan B (gdy przycisk nie zadziała):**
 

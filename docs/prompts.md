@@ -85,7 +85,8 @@ każdego ticketu zlecaj subagentowi, a sam sprawdzaj wynik przed przejściem dal
 - Bezpiecznik: signal: AbortSignal.timeout(10 * 60_000) na każdą turę.
 - Logowanie z panelu: przycisk „Zaloguj kontem ChatGPT” uruchamia `codex login --device-auth`
   (binarka z node_modules/.bin/codex, env CODEX_HOME), zdejmuje kody ANSI z wyjścia, pokazuje
-  link i kod w panelu z przyciskami Kopiuj, a status bierze z `codex login status`. Do tego
+  link i kod w panelu z przyciskami Kopiuj (kod np. ABCD-EFGH1: segmenty różnej długości,
+  nie zakładaj 4-4; sprawdź na prawdziwym wyjściu), a status bierze z `codex login status`. Do tego
   w ustawieniach wybór modelu (pole model w startThread, domyślnie gpt-6-luna; opcje gpt-6.1-sol,
   gpt-6-sol, gpt-6-astra) i effortu (pole modelReasoningEffort: low/medium/high/xhigh/max,
   domyślnie high), zapis w data/settings.json.
