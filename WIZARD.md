@@ -20,8 +20,9 @@ w `deploy/` i `templates/`.
    nie ma `OPENAI_API_KEY` ani `CODEX_API_KEY`. Klucze do **danych** (YouTube Data API - darmowy,
    Apify - opcjonalny, darmowy plan) to co innego: dają dostęp do komentarzy i napisów, nie do AI.
 2. **Agent w appce ma jeden folder.** Wątek Codexa pracuje w `workspace-write` w katalogu
-   `data/agent/` i nigdzie indziej. Nigdy `danger-full-access`. Klucze i hasła leżą poza tym
-   folderem, więc agent ich nie widzi.
+   `data/agent/` i nigdzie indziej. Nigdy `danger-full-access`. Uwaga: `workspace-write` ogranicza
+   tylko **zapis**, odczyt zostaje na całym dysku. Dlatego appka dokłada profil uprawnień plików
+   (`default_permissions`), który blokuje agentowi odczyt `data/secrets.json`, `.env` i `codex-home/`.
 3. **Dane pobiera appka, agent analizuje.** RSS, YouTube Data API i Apify woła kod appki
    (deterministycznie, z kluczami), zapisuje materiały do `data/agent/materials/`, a dopiero
    potem startuje tura agenta: czyta pliki, analizuje, zwraca raport. Ślad kroków agenta w panelu
@@ -162,13 +163,13 @@ Agent zada rundę pytań. Gotowe odpowiedzi (zmień, co chcesz; „all” = przy
 | Ile filmów na przebieg? | najwyżej 3 na kanał, **opublikowane w ostatnich 7 dniach** (pole `published` z RSS, nie `updated`) i jeszcze nieprzeanalizowane. Okno 7 dni = mało żądań i tani przebieg. **Brak nowych filmów nie kończy przebiegu:** tura agenta startuje na materiałach z ostatniego udanego przebiegu (bez ponownego pobierania), wznawia ten sam `threadId` i oznacza powtórzone wnioski „już zgłaszane”; raport dostaje ostrzeżenie „brak nowych filmów”. Dopiero brak jakichkolwiek materiałów = bez tury. Tak działa test pamięci w F3/F6 |
 | Kto pobiera dane? | **Appka** (kod), przed turą agenta, do `data/agent/materials/<run>/<videoId>/` jako `info.json`, `comments.json`, `transcript.txt`. Klucze zostają w `data/secrets.json`, poza folderem agenta. Agent dostaje w prompcie listę plików i analizuje (zasada 3) |
 | Co w raporcie? | 3 listy: pytania widzów, narzekania, luki tematyczne (czego nikt nie nagrał). Każda pozycja: tytuł, 1 zdanie, kanał/film źródłowy, siła (niska/średnia/wysoka), czy już zgłaszane w poprzednim przebiegu. Schemat: `docs/schema.json` |
-| Panel www | Node 22 + Express, HTML bez frameworka, ciemny motyw. Zakładki: Kanały, Przebieg (ślad kroków na żywo), Raport (kafelki), Historia (z przyciskiem „Usuń”: usunięcie przebiegu zwraca jego filmy do puli, wątek agenta zostaje), Ustawienia (klucz YouTube tylko do podmiany, token Apify z „Usuń”). Jedna zakładka naraz, działa na telefonie |
+| Panel www | Node 22 + Express, HTML bez frameworka, ciemny motyw. Zakładki: Kanały, Przebieg (ślad kroków na żywo), Raport (kafelki), Historia (z przyciskiem „Usuń”: usunięcie przebiegu zwraca jego filmy do puli, wątek agenta zostaje), Ustawienia (klucz YouTube i token Apify z „Usuń”; usunięcie klucza YouTube w trakcie przebiegu = 409, po usunięciu panel wraca do ekranu startowego). Jedna zakładka naraz, działa na telefonie |
 | Logowanie do panelu | formularz hasła na wejściu. Hash hasła (scrypt z Node, bez zależności) w `RADAR_PANEL_PASSWORD_HASH` w `.env`; sesja w cookie `HttpOnly; Secure; SameSite=Strict`; limit 5 prób na 15 min per IP; wszystkie `/api/*` za sesją oprócz `/health`. Bez ustawionego hasha appka odmawia startu z czytelnym komunikatem |
 | Ekran startowy (po haśle, dopóki czegoś brakuje) | krok 1 **„Sztuczna inteligencja (Codex + ChatGPT)”**: zdanie „Analizę robi Codex na Twojej subskrypcji ChatGPT. Bez osobnego, płatnego klucza API.”, ramka „AI jeszcze nieaktywne. Kliknij poniżej, pokażę Ci jednorazowy kod do wpisania w przeglądarce.” i przycisk **„Zaloguj kontem ChatGPT”**; krok 2 **klucz YouTube Data API** (pole + „Zapisz”, test przez `videos.list` na znanym ID); krok 3 **token Apify** (opcja, test przez `GET /v2/users/me`); krok 4 kanały. Po skompletowaniu ekran znika, w Ustawieniach zostają statusy, zmiana kluczy i wylogowanie |
 | Logowanie silnika | przycisk uruchamia `codex login --device-auth` (binarka `node_modules/.bin/codex`, env `CODEX_HOME`) jako osobną grupę procesów, zdejmuje kody ANSI, wyciąga link `https://auth.openai.com/codex/device` i kod z linii po „one-time code” wzorcem `[A-Z0-9]+-[A-Z0-9]+` (segmenty **różnej** długości, np. `J7SZ-MXKP1`; nie zakładaj 4-4), pokazuje oba z przyciskami Kopiuj, czeka na potwierdzenie, status z `codex login status` (kod wyjścia 0). Gotowy parser: `templates/device-login.js` |
 | Wybór modelu i effortu | w Ustawieniach: model (`gpt-6-luna` domyślnie; `gpt-6.1-sol`, `gpt-6-sol`, `gpt-6-astra`; pole `model`) i effort (`low`/`medium`/`high`/`xhigh`/`max`, domyślnie `high`; pole `modelReasoningEffort`). Zapis w `data/settings.json` |
 | Pamięć agenta | po pierwszym przebiegu zapisz `thread.id` w `data/state.json`; kolejne przebiegi `resumeThread(id)`, żeby agent wiedział, co już zgłaszał; poprzednie raporty w prompcie jako dane referencyjne |
-| Uprawnienia wątku | `sandboxMode: "workspace-write"`, `workingDirectory: data/agent/`, `skipGitRepoCheck: true`, `networkAccessEnabled: false` (dane są już na dysku), `approvalPolicy: "never"`, `webSearchMode: "disabled"`, MCP wyłączone (zasada 9): serwery z `config.toml` przez `mcp_servers.<nazwa>.enabled=false`; serwery dostarczane przez **wtyczki** Codexa (np. `code-review`, `cua_repl`, `codex_app`) nie mają tabeli w `config.toml`, więc samo `enabled=false` daje błąd `invalid transport` - dla nich kompletny wpis `{ command: "true", enabled: false }` albo wyłącz wtyczki (`features.plugins=false`, `plugins."<id>".enabled=false`). Lista: `codex mcp list --json` + sekcje `[plugins."..."]` z `config.toml` |
+| Uprawnienia wątku | `sandboxMode: "workspace-write"`, `workingDirectory: data/agent/`, `skipGitRepoCheck: true`, `networkAccessEnabled: false` (dane są już na dysku), `approvalPolicy: "never"`, `webSearchMode: "disabled"`. **Profil uprawnień plików** (bo `workspace-write` nie ogranicza odczytu): przez `configOverrides` `default_permissions="radar"` i `permissions.radar.filesystem={"/"="read", "<data/agent>"="write", "/tmp"="write", "<tmpdir>"="write", "<data/secrets.json>"="deny", "<.env>"="deny", "<codex-home>"="deny"}` - cała tabela jako jedna wartość TOML (ścieżki ze znakiem `.` w kluczu kropkowanym się psują), blokuj konkretne pliki, nie cały `data/` (na macOS `deny` na katalogu przebija `write` na podkatalogu). MCP wyłączone (zasada 9): serwery z `config.toml` przez `mcp_servers.<nazwa>.enabled=false`; serwery dostarczane przez **wtyczki** Codexa (np. `code-review`, `cua_repl`, `codex_app`) nie mają tabeli w `config.toml`, więc samo `enabled=false` daje błąd `invalid transport` - dla nich kompletny wpis `{ command: "true", enabled: false }` albo wyłącz wtyczki (`features.plugins=false`, `plugins."<id>".enabled=false`). Lista: `codex mcp list --json` + sekcje `[plugins."..."]` z `config.toml` |
 | Bezpiecznik | `AbortSignal.timeout(10 * 60_000)` na turę, **startowany tuż przed turą agenta**, nie na początku przebiegu (pobieranie z Apify może trwać minuty i zjadłoby agentowi czas); przerwana tura = wpis „przerwano po 10 min” w historii, drugi równoległy start = `409`. Ślad dostaje wpis „pobieram z Apify (do 5 min)”, żeby panel nie wyglądał na zawieszony |
 | Dostęp i sieć | serwer słucha na `HOST` z env (domyślnie `127.0.0.1`, w kontenerze `0.0.0.0`), port 3000, bez publikowania portu; przed nim Caddy (HTTPS, domena z `RADAR_DOMAIN`). `app.set("trust proxy", 1)`. Żądania zmieniające dane tylko z `Origin` równym `https://RADAR_DOMAIN` (lokalnie `http://127.0.0.1:PORT` / `http://localhost:PORT`, porównanie z nagłówkiem `Host`), inaczej 403 |
 | Baza | pliki JSON w `data/` (`channels.json`, `settings.json`, `secrets.json` 0600, `state.json`, `runs/<id>.json`), atomowy zapis. SQLite dopiero, gdy JSON przestanie wystarczać |
@@ -249,7 +250,11 @@ każdego ticketu zlecaj subagentowi, a sam sprawdzaj wynik przed przejściem dal
   nagłówki User-Agent przeglądarkowy + Accept-Language en-US + cookie SOCS=CAI, walidacja
   ^UC[\w-]{22}$.
 - Opcje wątku: sandboxMode "workspace-write", workingDirectory = data/agent/, skipGitRepoCheck
-  true, networkAccessEnabled false, approvalPolicy "never", webSearchMode "disabled"; serwery
+  true, networkAccessEnabled false, approvalPolicy "never", webSearchMode "disabled". Do tego
+  profil uprawnień plików przez configOverrides (workspace-write nie ogranicza odczytu):
+  default_permissions="radar" + permissions.radar.filesystem = "/" read, data/agent write,
+  /tmp i os.tmpdir() write, data/secrets.json / .env / codex-home deny (jedna wartość TOML,
+  ścieżki bezwzględne). Test: agent nie może odczytać data/secrets.json; serwery
   MCP wyłącz dla instancji SDK (codex mcp list --json -> enabled=false; serwery z wtyczek Codexa
   bez tabeli w config.toml dostają pełny wpis command="true" + enabled=false, inaczej błąd
   „invalid transport”).
@@ -258,13 +263,15 @@ każdego ticketu zlecaj subagentowi, a sam sprawdzaj wynik przed przejściem dal
 - Wynik tury wymuś przez outputSchema z docs/schema.json; sparsuj finalResponse jako JSON
   i zwaliduj.
 - Pamięć: thread.id po pierwszym przebiegu w data/state.json, kolejne przez resumeThread(id).
+  Status „ok” przebiegu ustawiaj dopiero PO zapisie state.json (threadId, pula filmów), inaczej
+  restart w tym momencie gubi pamięć.
   Brak nowych filmów nie kończy przebiegu: tura idzie na materiałach z ostatniego udanego
   przebiegu (bez ponownego pobierania) i oznacza powtórzone wnioski „już zgłaszane”.
 - Bezpiecznik: AbortSignal.timeout(10 * 60_000) na turę; drugi równoległy start = 409.
-- Hasło do panelu: NIE pytaj o nie w czacie ani polem formularza. Napisz skrypt
-  scripts/set-password.js (pyta 2x ukrytym polem w terminalu, zapisuje tylko hash scrypt do .env
-  jako RADAR_PANEL_PASSWORD_HASH w pojedynczych cudzysłowach, 0600) i daj mi komendę do
-  uruchomienia. .env w .gitignore i .dockerignore. Bez hasha appka nie startuje.
+- Hasło do panelu: NIE pytaj o nie w czacie ani polem formularza. Skopiuj
+  konfigurator/templates/set-password.js do scripts/set-password.js (pyta 2x ukrytym polem
+  w terminalu, zapisuje tylko hash scrypt do .env jako RADAR_PANEL_PASSWORD_HASH w pojedynczych
+  cudzysłowach, 0600) i daj mi komendę do uruchomienia. .env w .gitignore i .dockerignore. Bez hasha appka nie startuje.
   Sesja w cookie HttpOnly+Secure+SameSite=Strict (Secure tylko gdy RADAR_PUBLIC_URL to https),
   limit 5 prób / 15 min per IP, /api/* za sesją oprócz /health.
 - Ekran startowy po haśle, dopóki brakuje logowania ChatGPT, klucza YouTube lub kanałów:
@@ -295,7 +302,13 @@ każdego ticketu zlecaj subagentowi, a sam sprawdzaj wynik przed przejściem dal
 import { Codex } from "@openai/codex-sdk";
 import schema from "../docs/schema.json" with { type: "json" };
 
-const codex = new Codex({ config: { mcp_servers: disabledMcpServers } }); // bez apiKey
+const codex = new Codex({
+  config: { mcp_servers: disabledMcpServers },     // zasada 9
+  configOverrides: [                               // zasada 2: odczyt sekretów zablokowany
+    'default_permissions="radar"',
+    `permissions.radar.filesystem={"/"="read","${AGENT_DIR}"="write","/tmp"="write","${SECRETS}"="deny","${ENV_FILE}"="deny","${CODEX_HOME}"="deny"}`,
+  ],
+}); // bez apiKey
 const threadOptions = {
   model: settings.model ?? "gpt-6-luna",
   modelReasoningEffort: settings.effort ?? "high",
@@ -344,6 +357,8 @@ const report = JSON.parse(finalText); // zgodny z docs/schema.json
 | Po zamknięciu appki zostaje proces `codex login` | paczka `@openai/codex` uruchamia osobny proces natywny | uruchamiaj logowanie jako grupę procesów i kończ całą grupę |
 | Tura pada od razu: `Error loading config.toml: invalid transport in mcp_servers.<nazwa>` | wyłączany serwer MCP pochodzi z wtyczki Codexa, nie z `config.toml`; nadpisanie samego `enabled=false` tworzy wpis bez transportu | dla serwerów spoza `config.toml` nadpisuj `{ command: "true", enabled: false }` albo wyłącz wtyczki (`features.plugins=false`); test bez modelu: `codex -c ... mcp list --json` ma zwrócić kod 0 |
 | `node --test test/`: błąd o katalogu | Node 22 traktuje argument jak plik | `node --test "test/*.test.js"` |
+| Agent czyta `data/secrets.json` albo `codex-home/` (test atrapą) | `workspace-write` ogranicza tylko zapis | profil `default_permissions` z tabeli F2a; test: plik-atrapa w `data/` ma być dla agenta nieczytelny |
+| Testy przebiegu „flaky”, po restarcie znika `threadId` | status „ok” zapisany przed `state.json` | kolejność: najpierw `state.json`, potem status |
 | Test HTTP subagenta: `listen EPERM` | sandbox subagenta nie pozwala otworzyć portu | uruchom test z uprawnieniem do lokalnego nasłuchu; dotyczy testu, nie appki |
 
 **Test zaliczenia F3:** `npm test` PASS; panel pod `http://127.0.0.1:3000` prosi o hasło; po haśle
@@ -368,6 +383,8 @@ Nie prosisz agenta o napisanie Dockera od zera. W tym repo leżą sprawdzone pli
 | `deploy/.env.example` | `RADAR_DOMAIN`, `RADAR_PUBLIC_URL`, `RADAR_PANEL_PASSWORD_HASH`, `RADAR_SESSION_SECRET` |
 | `deploy/sandbox/radar-bwrap.apparmor` + `radar-bwrap-seccomp.json` | profile dla kontenera radaru: domyślne zabezpieczenia Dockera plus to, czego potrzebuje sandbox Codexa w środku (patrz ściana niżej) |
 | `deploy/sandbox/install-sandbox-profile.sh` | jedno polecenie z `sudo`, które ładuje profil AppArmor na serwerze |
+| `templates/set-password.js` | hasło do panelu z terminala (ukryte pole, tylko hash do `.env`) - kopia idzie do `scripts/` appki w F3 |
+| `templates/device-login.js` | parser linku i kodu urządzenia z wyjścia `codex login --device-auth` |
 
 Agent kopiuje `deploy/*` do folderu appki (`Dockerfile`, `docker-compose.yml`, `Caddyfile`,
 `.dockerignore`, `deploy/sandbox/`), uzupełnia `.env` i niczego w nich nie zmienia bez powodu.
@@ -407,7 +424,10 @@ albo w pęku kluczy i wklejaj ze schowka, zamiast przepisywać.
   zabezpieczenia Dockera (seccomp + AppArmor) blokują mu tę izolację: klatka w klatce. Naprawa
   jest już w `deploy/sandbox/`: profil AppArmor `radar-bwrap` i profil seccomp = domyślne profile
   Dockera plus `userns create`, `mount`, `remount`, `pivot_root` (i odpowiadające im wywołania
-  systemowe), **tylko dla kontenera radaru**. Załadowanie profilu AppArmor do jądra wymaga
+  systemowe), w tym `clone` z przestrzenią **sieci** - przy `networkAccessEnabled: false` bwrap robi
+  `--unshare-net` i bez tej reguły pada z `No permissions to create a new namespace` (ściana
+  z przebiegu v2). Wszystko **tylko dla kontenera radaru**. Po zmianie pliku seccomp
+  `docker compose up -d --force-recreate` - zwykłe `up -d` nie odtwarza kontenera. Załadowanie profilu AppArmor do jądra wymaga
   jednego `sudo` (skrypt `install-sandbox-profile.sh`), wpisujesz je sam. **Nigdy**
   `privileged: true`, `apparmor=unconfined` ani `danger-full-access`. Nie wyłączaj też
   `kernel.apparmor_restrict_unprivileged_userns` przez `sysctl` dla całego serwera - profil

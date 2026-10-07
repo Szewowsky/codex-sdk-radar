@@ -202,7 +202,11 @@ każdego ticketu zlecaj subagentowi, a sam sprawdzaj wynik przed przejściem dal
   nagłówki User-Agent przeglądarkowy + Accept-Language en-US + cookie SOCS=CAI, walidacja
   ^UC[\w-]{22}$.
 - Opcje wątku: sandboxMode "workspace-write", workingDirectory = data/agent/, skipGitRepoCheck
-  true, networkAccessEnabled false, approvalPolicy "never", webSearchMode "disabled"; serwery
+  true, networkAccessEnabled false, approvalPolicy "never", webSearchMode "disabled". Do tego
+  profil uprawnień plików przez configOverrides (workspace-write nie ogranicza odczytu):
+  default_permissions="radar" + permissions.radar.filesystem = "/" read, data/agent write,
+  /tmp i os.tmpdir() write, data/secrets.json / .env / codex-home deny (jedna wartość TOML,
+  ścieżki bezwzględne). Test: agent nie może odczytać data/secrets.json; serwery
   MCP wyłącz dla instancji SDK (codex mcp list --json -> enabled=false; serwery z wtyczek Codexa
   bez tabeli w config.toml dostają pełny wpis command="true" + enabled=false, inaczej błąd
   „invalid transport”).
@@ -211,13 +215,15 @@ każdego ticketu zlecaj subagentowi, a sam sprawdzaj wynik przed przejściem dal
 - Wynik tury wymuś przez outputSchema z docs/schema.json; sparsuj finalResponse jako JSON
   i zwaliduj.
 - Pamięć: thread.id po pierwszym przebiegu w data/state.json, kolejne przez resumeThread(id).
+  Status „ok” przebiegu ustawiaj dopiero PO zapisie state.json (threadId, pula filmów), inaczej
+  restart w tym momencie gubi pamięć.
   Brak nowych filmów nie kończy przebiegu: tura idzie na materiałach z ostatniego udanego
   przebiegu (bez ponownego pobierania) i oznacza powtórzone wnioski „już zgłaszane”.
 - Bezpiecznik: AbortSignal.timeout(10 * 60_000) na turę; drugi równoległy start = 409.
-- Hasło do panelu: NIE pytaj o nie w czacie ani polem formularza. Napisz skrypt
-  scripts/set-password.js (pyta 2x ukrytym polem w terminalu, zapisuje tylko hash scrypt do .env
-  jako RADAR_PANEL_PASSWORD_HASH w pojedynczych cudzysłowach, 0600) i daj mi komendę do
-  uruchomienia. .env w .gitignore i .dockerignore. Bez hasha appka nie startuje.
+- Hasło do panelu: NIE pytaj o nie w czacie ani polem formularza. Skopiuj
+  konfigurator/templates/set-password.js do scripts/set-password.js (pyta 2x ukrytym polem
+  w terminalu, zapisuje tylko hash scrypt do .env jako RADAR_PANEL_PASSWORD_HASH w pojedynczych
+  cudzysłowach, 0600) i daj mi komendę do uruchomienia. .env w .gitignore i .dockerignore. Bez hasha appka nie startuje.
   Sesja w cookie HttpOnly+Secure+SameSite=Strict (Secure tylko gdy RADAR_PUBLIC_URL to https),
   limit 5 prób / 15 min per IP, /api/* za sesją oprócz /health.
 - Ekran startowy po haśle, dopóki brakuje logowania ChatGPT, klucza YouTube lub kanałów:
@@ -252,7 +258,7 @@ YouTube Data API v3 w projekcie Google; Apify `invalid-input ... urls` → lista
 `{"url": "..."}`; kod urządzenia się nie pojawia → `templates/device-login.js`; test HTTP
 subagenta `listen EPERM` → uprawnienie do lokalnego nasłuchu dla testu.
 
-> **U mnie:** Claude Opus 5.5 nadzorował i delegował kod subagentom. 8 ticketów, `npm test` 61/61.
+> **U mnie:** Claude Opus 5.5 nadzorował i delegował kod subagentom. 8 ticketów, `npm test` 64/64.
 > Pierwszy przebieg lokalnie (1 kanał, 3 filmy, `gpt-6-luna` / `high`): 3 min 19 s, raport 3 pytania /
 > 3 narzekania / 4 luki, 47 948 tokenów. Drugi przebieg (bez nowych filmów): ten sam wątek, 10/10 pozycji
 > „już zgłaszane”, 20 s, 82 z 127 tys. tokenów z cache. Ściany: serwery MCP z wtyczek Codexa („invalid transport”)

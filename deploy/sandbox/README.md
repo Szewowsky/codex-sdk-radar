@@ -6,6 +6,9 @@ Dockera (seccomp + AppArmor `docker-default`) blokują mu to, więc w kontenerze
 - `radar-bwrap.apparmor` - profil `docker-default` plus: `userns create`, `mount`, `remount`, `pivot_root`.
 - `radar-bwrap-seccomp.json` - domyślny profil seccomp Dockera plus odpowiadające im wywołania
   systemowe (m.in. `unshare`, `clone` z flagami przestrzeni nazw, `mount`, `umount2`, `pivot_root`).
+  Dodatkowo (przebieg v2, Codex 0.160.1): `clone` z kombinacją user+mount+pid+ipc+**net**. Przy
+  `networkAccessEnabled: false` bwrap tworzy też przestrzeń nazw sieci (`--unshare-net`); bez tej
+  reguły sandbox kończy się `bwrap: No permissions to create a new namespace`.
 - `install-sandbox-profile.sh` - jednorazowo, z `sudo`, ładuje profil AppArmor do jądra serwera.
 
 Oba profile dotyczą **tylko kontenera radaru** (`security_opt` w `docker-compose.yml`). Dlatego nie
