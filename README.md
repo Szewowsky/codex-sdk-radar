@@ -37,7 +37,7 @@ podmieniasz jeden akapit w promptach i jedziesz tą samą drogą.
 | Dostęp do appki | `https://srvXXXXXX.hstgr.cloud` (darmowa subdomena Hostingera) albo własna domena; HTTPS przez Caddy, wejście hasłem do panelu |
 | Nie potrzebujesz | klucza OpenAI API, frameworka, Tailscale ani tunelu |
 
-Nie masz jeszcze VPS? Ja korzystam z [Hostingera](https://www.hostinger.com/roberthost10)
+Nie masz jeszcze VPS? Ja korzystam z [Hostingera](https://hostinger.com/robertvps)
 (partner technologiczny kanału), kod **ROBERTHOST** daje dodatkowy rabat.
 
 ## Quick Start
